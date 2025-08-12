@@ -721,7 +721,7 @@ export default function TemplatesPage() {
             • <strong>일괄 설정:</strong> 모든 요일에 동일한 시간을 적용할 때 사용하세요
           </p>
           <p className="text-sm text-gray-600">
-            • <strong>휴무 설정:</strong> 특정 요일을 휴무로 설정하려면 '휴무' 버튼을 클릭하세요
+            • <strong>휴무 설정:</strong> 특정 요일을 휴무로 설정하려면 &apos;휴무&apos; 버튼을 클릭하세요
           </p>
           <p className="text-sm text-gray-600">
             • <strong>템플릿 복사:</strong> 기존 템플릿을 복사하여 유사한 스케줄을 빠르게 생성할 수 있습니다

@@ -109,7 +109,7 @@ export function calculateWorkHours(
   const [endHour, endMin] = endTime.split(':').map(Number)
   
   // 분 단위로 변환
-  let startMinutes = startHour * 60 + startMin
+  const startMinutes = startHour * 60 + startMin
   let endMinutes = endHour * 60 + endMin
   
   // 야간 근무 처리 (종료시간이 시작시간보다 작으면 다음날)
@@ -152,7 +152,7 @@ function calculateNightHours(startTime: string, endTime: string): number {
   const nightStart = NIGHT_START_HOUR * 60 // 22:00
   const nightEnd = NIGHT_END_HOUR * 60   // 06:00
   
-  let startMinutes = startHour * 60 + startMin
+  const startMinutes = startHour * 60 + startMin
   let endMinutes = endHour * 60 + endMin
   
   // 야간 근무 (다음날까지)인 경우

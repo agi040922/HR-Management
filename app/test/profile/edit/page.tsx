@@ -85,7 +85,8 @@ export default function ProfileEditPage() {
   /**
    * 프로필 정보 저장
    */
-  const handleSave = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSave = async (formData: any) => {
     if (!profile) return
 
     setSaving(true)
@@ -154,7 +155,8 @@ export default function ProfileEditPage() {
   /**
    * 아바타 업로드 핸들러
    */
-  const handleAvatarUpload = async (file: File) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleAvatarUpload = async (file: File): Promise<any> => {
     setError('')
     setMessage('')
 

@@ -97,17 +97,17 @@ export default function ContractPreview({ contract }: ContractPreviewProps) {
             {contract.employer.companyName || '________________'}
           </span>
           {isEnglish ? (
-            <> (hereinafter referred to as "Employer") and </>
+            <> (hereinafter referred to as &quot;Employer&quot;) and </>
           ) : (
-            <> (이하 "사업주"라 함)과(와) </>
+            <> (이하 &quot;사업주&quot;라 함)과(와) </>
           )}
           <span className="font-semibold underline decoration-dotted ml-2">
             {contract.employee.name || '________________'}
           </span>
           {isEnglish ? (
-            <> (hereinafter referred to as "Employee") hereby enter into the following employment contract.</>
+            <> (hereinafter referred to as &quot;Employee&quot;) hereby enter into the following employment contract.</>
           ) : (
-            <> (이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.</>
+            <> (이하 &quot;근로자&quot;라 함)은 다음과 같이 근로계약을 체결한다.</>
           )}
         </p>
       </div>

@@ -24,6 +24,7 @@ export default function TestPage() {
   const [hourlyWage, setHourlyWage] = useState(10000)
   const [weeklyHours, setWeeklyHours] = useState(40)
   const [dependents, setDependents] = useState(1)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = useState<any>(null)
 
   const handleCalculate = () => {
@@ -366,7 +367,7 @@ export default function TestPage() {
                 </div>
               ) : (
                 <div className="text-center text-gray-500 py-8">
-                  위의 정보를 입력하고 "급여 계산하기" 버튼을 클릭하세요.
+                  위의 정보를 입력하고 &quot;급여 계산하기&quot; 버튼을 클릭하세요.
                 </div>
               )}
             </CardContent>
