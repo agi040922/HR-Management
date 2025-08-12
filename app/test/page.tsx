@@ -24,8 +24,59 @@ export default function TestPage() {
   const [hourlyWage, setHourlyWage] = useState(10000)
   const [weeklyHours, setWeeklyHours] = useState(40)
   const [dependents, setDependents] = useState(1)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{
+    workHours: {
+      totalHours: number;
+      regularHours: number;
+      overtimeHours: number;
+      nightHours: number;
+      isNightShift: boolean;
+    };
+    payroll: {
+      regularPay: number;
+      overtimePay: number;
+      nightPay: number;
+      holidayPay: number;
+      totalPay: number;
+      isEligibleForHolidayPay: boolean;
+    };
+    monthlySalary: {
+      grossSalary: number;
+      totalWorkingHours: number;
+      holidayHours: number;
+    };
+    netSalary: {
+      grossSalary: number;
+      employeeInsurance: number;
+      incomeTax: number;
+      localTax: number;
+      totalDeductions: number;
+      netSalary: number;
+    };
+    employerCost: {
+      grossSalary: number;
+      employerInsurance: number;
+      totalCost: number;
+    };
+    insurance: {
+      employee: {
+        nationalPension: number;
+        healthInsurance: number;
+        longTermCare: number;
+        employment: number;
+        total: number;
+      };
+      employer: {
+        nationalPension: number;
+        healthInsurance: number;
+        longTermCare: number;
+        employment: number;
+        employmentStability: number;
+        workersCompensation: number;
+        total: number;
+      };
+    };
+  } | null>(null)
 
   const handleCalculate = () => {
     const workHours = calculateWorkHours(startTime, endTime, breakTime)
@@ -335,7 +386,7 @@ export default function TestPage() {
                       </div>
                       <div className="flex justify-between text-red-600">
                         <span>- 지방소득세:</span>
-                        <span>-{result.netSalary.localIncomeTax.toLocaleString()}원</span>
+                        <span>-{result.netSalary.localTax.toLocaleString()}원</span>
                       </div>
                       <hr />
                       <div className="flex justify-between font-semibold text-lg">
@@ -351,7 +402,7 @@ export default function TestPage() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>급여:</span>
-                        <span>{result.employerCost.salary.toLocaleString()}원</span>
+                        <span>{result.employerCost.grossSalary.toLocaleString()}원</span>
                       </div>
                       <div className="flex justify-between">
                         <span>사업주 보험료:</span>

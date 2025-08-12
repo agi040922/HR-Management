@@ -106,7 +106,7 @@ export default function ProfileEditPage() {
       const { data, error } = await updateProfile(cleanedFormData)
       
       if (error) {
-        setError(`프로필 업데이트 실패: ${typeof error === 'string' ? error : (error as any)?.message || '알 수 없는 오류'}`)
+        setError(`프로필 업데이트 실패: ${typeof error === 'string' ? error : (error as Error)?.message || '알 수 없는 오류'}`)
       } else {
         setMessage('프로필이 성공적으로 업데이트되었습니다!')
         // 3초 후 프로필 페이지로 이동
@@ -164,7 +164,7 @@ export default function ProfileEditPage() {
       const { data, error } = await uploadAvatar(file)
       
       if (error) {
-        setError(`아바타 업로드 실패: ${typeof error === 'string' ? error : (error as any)?.message || '알 수 없는 오류'}`)
+        setError(`아바타 업로드 실패: ${typeof error === 'string' ? error : (error as Error)?.message || '알 수 없는 오류'}`)
         setPreviewUrl(null)
       } else {
         setMessage('아바타가 성공적으로 업로드되었습니다!')

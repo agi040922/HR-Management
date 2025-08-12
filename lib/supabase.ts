@@ -161,8 +161,8 @@ export type Database = {
           state: string | null
           postal_code: string | null
           country: string | null
-          preferences: Record<string, any>
-          settings: Record<string, any>
+          preferences: Record<string, unknown>
+          settings: Record<string, unknown>
           is_active: boolean
           is_verified: boolean
           created_at: string
