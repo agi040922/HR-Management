@@ -140,6 +140,89 @@ export type Database = {
           updated_at?: string
         }
       }
+      users: {
+        Row: {
+          id: string
+          user_id: string
+          display_name: string | null
+          first_name: string | null
+          last_name: string | null
+          phone: string | null
+          avatar_url: string | null
+          bio: string | null
+          department: string | null
+          position: string | null
+          employee_id: string | null
+          hire_date: string | null
+          birth_date: string | null
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          state: string | null
+          postal_code: string | null
+          country: string | null
+          preferences: Record<string, any>
+          settings: Record<string, any>
+          is_active: boolean
+          is_verified: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          display_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          phone?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          department?: string | null
+          position?: string | null
+          employee_id?: string | null
+          hire_date?: string | null
+          birth_date?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string | null
+          preferences?: Record<string, any>
+          settings?: Record<string, any>
+          is_active?: boolean
+          is_verified?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          display_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          phone?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          department?: string | null
+          position?: string | null
+          employee_id?: string | null
+          hire_date?: string | null
+          birth_date?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string | null
+          preferences?: Record<string, any>
+          settings?: Record<string, any>
+          is_active?: boolean
+          is_verified?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -158,3 +241,6 @@ export interface StoreSettings {
 export type EmployeeRow = Database['public']['Tables']['employees']['Row']
 export type WorkScheduleRow = Database['public']['Tables']['work_schedules']['Row']
 export type StoreSettingsRow = Database['public']['Tables']['store_settings']['Row']
+export type UserRow = Database['public']['Tables']['users']['Row']
+export type UserInsert = Database['public']['Tables']['users']['Insert']
+export type UserUpdate = Database['public']['Tables']['users']['Update']

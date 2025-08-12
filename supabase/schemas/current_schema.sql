@@ -1,12 +1,13 @@
 -- 아르바이트 관리 시스템 현재 스키마 상태
--- 최종 업데이트: 2025-01-02 17:18:00
--- 주요 변경: 주간 반복 패턴 기반 스케줄 시스템 추가
+-- 최종 업데이트: 2025-08-07
+-- 주요 변경: 스토어 소유권 시스템 추가, 멀티 스토어 지원, RLS 정책 적용
 
 -- 직원 테이블
 CREATE TABLE employees (
   id BIGSERIAL PRIMARY KEY,
+  store_id INTEGER REFERENCES public.store_settings(id) ON DELETE SET NULL,
   name VARCHAR(50) NOT NULL,
-  hourly_wage INTEGER NOT NULL DEFAULT 9860,
+  hourly_wage INTEGER NOT NULL DEFAULT 10030,
   position VARCHAR(50),
   phone VARCHAR(20),
   start_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -19,6 +20,7 @@ CREATE TABLE employees (
 CREATE TABLE work_schedules (
   id BIGSERIAL PRIMARY KEY,
   employee_id BIGINT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+  store_id INTEGER REFERENCES public.store_settings(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
@@ -48,16 +50,120 @@ CREATE TABLE work_schedules (
   UNIQUE(employee_id, date, start_time)
 );
 
--- 가게 설정 테이블
-CREATE TABLE store_settings (
-  id BIGSERIAL PRIMARY KEY,
-  store_name VARCHAR(100) NOT NULL DEFAULT '내 가게',
+-- 가게 설정 테이블 (멀티 스토어 지원)
+CREATE TABLE IF NOT EXISTS public.store_settings (
+  id SERIAL PRIMARY KEY,
+  owner_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  store_name VARCHAR(100) NOT NULL DEFAULT 'My Store',
   open_time TIME NOT NULL DEFAULT '09:00',
-  close_time TIME NOT NULL DEFAULT '22:00',
+  close_time TIME NOT NULL DEFAULT '18:00',
   time_slot_minutes INTEGER NOT NULL DEFAULT 30,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 사용자 프로필 정보를 저장하는 users 테이블
+-- Supabase Auth의 auth.users와 1:1 관계로 연동
+CREATE TABLE IF NOT EXISTS public.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  
+  -- 기본 프로필 정보
+  display_name VARCHAR(100),
+  first_name VARCHAR(50),
+  last_name VARCHAR(50),
+  phone VARCHAR(20),
+  avatar_url TEXT,
+  bio TEXT,
+  
+  -- 추가 정보
+  department VARCHAR(100),
+  position VARCHAR(100),
+  employee_id VARCHAR(50) UNIQUE,
+  hire_date DATE,
+  birth_date DATE,
+  
+  -- 주소 정보
+  address_line1 VARCHAR(255),
+  address_line2 VARCHAR(255),
+  city VARCHAR(100),
+  state VARCHAR(100),
+  postal_code VARCHAR(20),
+  country VARCHAR(100) DEFAULT 'South Korea',
+  
+  -- 설정 정보 (JSON)
+  preferences JSONB DEFAULT '{}',
+  settings JSONB DEFAULT '{}',
+  
+  -- 상태 관리
+  is_active BOOLEAN DEFAULT true,
+  is_verified BOOLEAN DEFAULT false,
+  
+  -- 타임스탬프
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- users 테이블 인덱스
+CREATE INDEX IF NOT EXISTS idx_users_user_id ON public.users(user_id);
+CREATE INDEX IF NOT EXISTS idx_users_employee_id ON public.users(employee_id);
+CREATE INDEX IF NOT EXISTS idx_users_department ON public.users(department);
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON public.users(is_active);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON public.users(created_at);
+
+-- updated_at 자동 업데이트 트리거 함수
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- updated_at 트리거 적용
+CREATE TRIGGER trigger_users_updated_at
+  BEFORE UPDATE ON public.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+-- RLS (Row Level Security) 정책 설정
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+-- 사용자는 자신의 레코드만 조회 가능
+CREATE POLICY "Users can view own profile" ON public.users
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- 사용자는 자신의 레코드만 수정 가능
+CREATE POLICY "Users can update own profile" ON public.users
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- 사용자는 자신의 레코드만 삭제 가능
+CREATE POLICY "Users can delete own profile" ON public.users
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 인증된 사용자는 자신의 프로필 생성 가능
+CREATE POLICY "Users can insert own profile" ON public.users
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 사용자 프로필 자동 생성 함수
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (user_id, display_name, created_at, updated_at)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email),
+    NOW(),
+    NOW()
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- auth.users에 새 사용자가 생성될 때 자동으로 users 테이블에 레코드 생성
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 급여 계산 로그 테이블
 CREATE TABLE payroll_calculations (
@@ -75,40 +181,58 @@ CREATE TABLE payroll_calculations (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 인덱스
+-- 모든 테이블 인덱스 (성능 최적화)
+CREATE INDEX IF NOT EXISTS idx_store_settings_owner_id ON public.store_settings(owner_id);
+CREATE INDEX IF NOT EXISTS idx_employees_store_id ON public.employees(store_id);
+CREATE INDEX IF NOT EXISTS idx_work_schedules_store_id ON public.work_schedules(store_id);
+CREATE INDEX IF NOT EXISTS idx_weekly_schedule_templates_store_id ON public.weekly_schedule_templates(store_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_exceptions_store_id ON public.schedule_exceptions(store_id);
+
+-- 기존 인덱스
 CREATE INDEX idx_work_schedules_employee_date ON work_schedules(employee_id, date);
 CREATE INDEX idx_work_schedules_date ON work_schedules(date);
 CREATE INDEX idx_employees_active ON employees(is_active);
 CREATE INDEX idx_payroll_employee_date ON payroll_calculations(employee_id, calculation_date);
 
--- 주간 스케줄 템플릿 테이블 (신규)
+-- 주간 스케줄 템플릿 테이블 (멀티 스토어 지원)
 CREATE TABLE weekly_schedule_templates (
   id SERIAL PRIMARY KEY,
-  employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-  day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6), -- 0=일요일, 6=토요일
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
-  break_time INTEGER DEFAULT 0, -- 휴게시간 (분)
+  store_id INTEGER REFERENCES public.store_settings(id) ON DELETE CASCADE,
+  template_name VARCHAR(100) NOT NULL,
+  monday_start TIME,
+  monday_end TIME,
+  tuesday_start TIME,
+  tuesday_end TIME,
+  wednesday_start TIME,
+  wednesday_end TIME,
+  thursday_start TIME,
+  thursday_end TIME,
+  friday_start TIME,
+  friday_end TIME,
+  saturday_start TIME,
+  saturday_end TIME,
+  sunday_start TIME,
+  sunday_end TIME,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
-  -- 기본 중복 방지 (is_active 조건은 별도 인덱스로 처리)
-  UNIQUE(employee_id, day_of_week)
+  -- 기본 중복 방지
+  UNIQUE(store_id, template_name)
 );
 
--- 스케줄 예외사항 테이블 (신규)
+-- 스케줄 예외사항 테이블 (멀티 스토어 지원)
 CREATE TABLE schedule_exceptions (
   id SERIAL PRIMARY KEY,
-  employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+  store_id INTEGER REFERENCES public.store_settings(id) ON DELETE CASCADE,
+  employee_id INTEGER REFERENCES employees(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   start_time TIME,
   end_time TIME,
-  break_time INTEGER DEFAULT 0,
-  exception_type VARCHAR(20) NOT NULL CHECK (exception_type IN ('OVERRIDE', 'CANCEL', 'EXTRA')),
-  -- OVERRIDE: 해당 날짜의 기본 스케줄 대체
-  -- CANCEL: 해당 날짜의 기본 스케줄 취소
-  -- EXTRA: 기본 스케줄 외 추가 근무
+  exception_type VARCHAR(20) NOT NULL CHECK (exception_type IN ('CANCEL', 'OVERRIDE', 'ADDITIONAL')),
+  -- CANCEL: 해당 날짜 근무 취소
+  -- OVERRIDE: 해당 날짜 근무시간 변경
+  -- ADDITIONAL: 추가 근무
   notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -278,7 +402,7 @@ CREATE TRIGGER update_schedule_exceptions_updated_at
   BEFORE UPDATE ON schedule_exceptions 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- RLS 정책
+-- RLS (Row Level Security) 정책 설정
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE work_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
@@ -286,10 +410,66 @@ ALTER TABLE payroll_calculations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE weekly_schedule_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE schedule_exceptions ENABLE ROW LEVEL SECURITY;
 
--- 모든 작업 허용 정책 (개발 단계)
-CREATE POLICY "Enable all access for employees" ON employees FOR ALL USING (true);
-CREATE POLICY "Enable all access for work_schedules" ON work_schedules FOR ALL USING (true);
-CREATE POLICY "Enable all access for store_settings" ON store_settings FOR ALL USING (true);
-CREATE POLICY "Enable all access for payroll_calculations" ON payroll_calculations FOR ALL USING (true);
-CREATE POLICY "Enable all access for weekly_schedule_templates" ON weekly_schedule_templates FOR ALL USING (true);
-CREATE POLICY "Enable all access for schedule_exceptions" ON schedule_exceptions FOR ALL USING (true);
+-- 스토어 소유자만 접근 가능 (store_settings)
+CREATE POLICY "Users can view their own stores" ON public.store_settings
+  FOR SELECT USING (auth.uid() = owner_id);
+
+CREATE POLICY "Users can insert their own stores" ON public.store_settings
+  FOR INSERT WITH CHECK (auth.uid() = owner_id);
+
+CREATE POLICY "Users can update their own stores" ON public.store_settings
+  FOR UPDATE USING (auth.uid() = owner_id);
+
+CREATE POLICY "Users can delete their own stores" ON public.store_settings
+  FOR DELETE USING (auth.uid() = owner_id);
+
+-- 스토어 소유자만 직원 데이터 접근 가능 (employees)
+CREATE POLICY "Users can access employees of their stores" ON public.employees
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.store_settings 
+      WHERE store_settings.id = employees.store_id 
+      AND store_settings.owner_id = auth.uid()
+    )
+  );
+
+-- 스토어 소유자만 근무 스케줄 접근 가능 (work_schedules)
+CREATE POLICY "Users can access work schedules of their stores" ON public.work_schedules
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.store_settings 
+      WHERE store_settings.id = work_schedules.store_id 
+      AND store_settings.owner_id = auth.uid()
+    )
+  );
+
+-- 스토어 소유자만 주간 템플릿 접근 가능 (weekly_schedule_templates)
+CREATE POLICY "Users can access templates of their stores" ON public.weekly_schedule_templates
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.store_settings 
+      WHERE store_settings.id = weekly_schedule_templates.store_id 
+      AND store_settings.owner_id = auth.uid()
+    )
+  );
+
+-- 스토어 소유자만 예외사항 접근 가능 (schedule_exceptions)
+CREATE POLICY "Users can access exceptions of their stores" ON public.schedule_exceptions
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.store_settings 
+      WHERE store_settings.id = schedule_exceptions.store_id 
+      AND store_settings.owner_id = auth.uid()
+    )
+  );
+
+-- 급여 계산 데이터 접근 제어 (payroll_calculations)
+CREATE POLICY "Users can access payroll of their employees" ON public.payroll_calculations
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.employees e
+      JOIN public.store_settings s ON e.store_id = s.id
+      WHERE e.id = payroll_calculations.employee_id 
+      AND s.owner_id = auth.uid()
+    )
+  );
