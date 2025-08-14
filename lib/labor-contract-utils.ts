@@ -110,7 +110,7 @@ export function validateLaborContract(contract: LaborContract): ValidationError[
   }
 
   // 외국인근로자 수습기간 검증
-  if ((contract.contractType === 'foreign' || contract.contractType === 'foreign-agriculture') && 
+  if ((contract.contractType === 'foreign-worker' || contract.contractType === 'foreign-agriculture') && 
       contract.foreignWorkerInfo?.useProbationPeriod) {
     if (!contract.foreignWorkerInfo.probationPeriodMonths || 
         contract.foreignWorkerInfo.probationPeriodMonths > 3) {

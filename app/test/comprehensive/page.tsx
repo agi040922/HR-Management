@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
+import Settings, { SettingsButton } from '@/components/Settings'
 
 // 타입 정의
 interface DashboardStats {
@@ -56,6 +57,8 @@ interface ExceptionData {
   notes?: string
 }
 
+
+
 export default function ComprehensiveDashboard() {
   const { user, loading } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
@@ -68,6 +71,9 @@ export default function ComprehensiveDashboard() {
   const [employees, setEmployees] = useState<EmployeeData[]>([])
   const [exceptions, setExceptions] = useState<ExceptionData[]>([])
   const [loadingData, setLoadingData] = useState(true)
+  
+  // 설정 관련 상태
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
 
   // 데이터 로드
   useEffect(() => {
@@ -147,6 +153,8 @@ export default function ComprehensiveDashboard() {
     }
   }
 
+
+
   const quickActions = [
     {
       title: '새 스토어 생성',
@@ -220,9 +228,12 @@ export default function ComprehensiveDashboard() {
   return (
     <div className="space-y-8">
       {/* 헤더 */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
-        <p className="text-gray-600">HR 관리 시스템 전체 현황을 확인하세요</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
+          <p className="text-gray-600">HR 관리 시스템 전체 현황을 확인하세요</p>
+        </div>
+        <SettingsButton onClick={() => setShowSettingsModal(true)} />
       </div>
 
       {/* 통계 카드 */}
@@ -404,6 +415,15 @@ export default function ComprehensiveDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 설정 모달 */}
+      <Settings 
+        isOpen={showSettingsModal} 
+        onClose={() => setShowSettingsModal(false)}
+        onSettingsChange={(settings, preferences) => {
+          console.log('설정이 변경되었습니다:', { settings, preferences })
+        }}
+      />
     </div>
   )
 }

@@ -1,11 +1,13 @@
 -- 아르바이트 관리 시스템 현재 스키마 상태
--- 최종 업데이트: 2025-08-07
+-- 최종 업데이트: 2025-08-14
 -- 주요 변경: 스토어 소유권 시스템 추가, 멀티 스토어 지원, RLS 정책 적용
+-- 아직은 policy 등 정책이 적용되지 않음
 
 -- 직원 테이블
 CREATE TABLE employees (
   id BIGSERIAL PRIMARY KEY,
   store_id INTEGER REFERENCES public.store_settings(id) ON DELETE SET NULL,
+  owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name VARCHAR(50) NOT NULL,
   hourly_wage INTEGER NOT NULL DEFAULT 10030,
   position VARCHAR(50),
@@ -55,8 +57,6 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
   id SERIAL PRIMARY KEY,
   owner_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   store_name VARCHAR(100) NOT NULL DEFAULT 'My Store',
-  open_time TIME NOT NULL DEFAULT '09:00',
-  close_time TIME NOT NULL DEFAULT '18:00',
   time_slot_minutes INTEGER NOT NULL DEFAULT 30,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -184,6 +184,8 @@ CREATE TABLE payroll_calculations (
 -- 모든 테이블 인덱스 (성능 최적화)
 CREATE INDEX IF NOT EXISTS idx_store_settings_owner_id ON public.store_settings(owner_id);
 CREATE INDEX IF NOT EXISTS idx_employees_store_id ON public.employees(store_id);
+CREATE INDEX IF NOT EXISTS idx_employees_owner_id ON employees(owner_id);
+CREATE INDEX IF NOT EXISTS idx_employees_owner_store ON employees(owner_id, store_id);
 CREATE INDEX IF NOT EXISTS idx_work_schedules_store_id ON public.work_schedules(store_id);
 CREATE INDEX IF NOT EXISTS idx_weekly_schedule_templates_store_id ON public.weekly_schedule_templates(store_id);
 CREATE INDEX IF NOT EXISTS idx_schedule_exceptions_store_id ON public.schedule_exceptions(store_id);
@@ -194,25 +196,12 @@ CREATE INDEX idx_work_schedules_date ON work_schedules(date);
 CREATE INDEX idx_employees_active ON employees(is_active);
 CREATE INDEX idx_payroll_employee_date ON payroll_calculations(employee_id, calculation_date);
 
--- 주간 스케줄 템플릿 테이블 (멀티 스토어 지원)
+-- 주간 스케줄 템플릿 테이블 (멀티 스토어 지원, JSONB 기반)
 CREATE TABLE weekly_schedule_templates (
   id SERIAL PRIMARY KEY,
-  store_id INTEGER REFERENCES public.store_settings(id) ON DELETE CASCADE,
+  store_id INTEGER NOT NULL REFERENCES public.store_settings(id) ON DELETE CASCADE,
   template_name VARCHAR(100) NOT NULL,
-  monday_start TIME,
-  monday_end TIME,
-  tuesday_start TIME,
-  tuesday_end TIME,
-  wednesday_start TIME,
-  wednesday_end TIME,
-  thursday_start TIME,
-  thursday_end TIME,
-  friday_start TIME,
-  friday_end TIME,
-  saturday_start TIME,
-  saturday_end TIME,
-  sunday_start TIME,
-  sunday_end TIME,
+  schedule_data JSONB NOT NULL DEFAULT '{}', -- 요일별 상세 스케줄 정보
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -220,6 +209,111 @@ CREATE TABLE weekly_schedule_templates (
   -- 기본 중복 방지
   UNIQUE(store_id, template_name)
 );
+
+-- JSONB 인덱스 생성 (성능 최적화)
+CREATE INDEX idx_weekly_schedule_templates_schedule_data 
+ON weekly_schedule_templates USING GIN (schedule_data);
+
+-- 업데이트 트리거 생성
+CREATE OR REPLACE FUNCTION update_weekly_schedule_templates_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_weekly_schedule_templates_updated_at
+  BEFORE UPDATE ON weekly_schedule_templates
+  FOR EACH ROW
+  EXECUTE FUNCTION update_weekly_schedule_templates_updated_at();
+
+-- 기본 템플릿 데이터 삽입 함수
+CREATE OR REPLACE FUNCTION create_default_schedule_template(p_store_id INTEGER, p_template_name VARCHAR DEFAULT '기본 템플릿')
+RETURNS INTEGER AS $$
+DECLARE
+  template_id INTEGER;
+  default_schedule JSONB;
+BEGIN
+  -- 기본 스케줄 구조 생성 (월~금 09:00-18:00, 토일 휴무)
+  default_schedule := '{
+    "monday": {
+      "is_open": true,
+      "open_time": "09:00",
+      "close_time": "18:00",
+      "break_periods": [{"start": "12:00", "end": "13:00", "name": "점심시간"}],
+      "time_slots": {}
+    },
+    "tuesday": {
+      "is_open": true,
+      "open_time": "09:00", 
+      "close_time": "18:00",
+      "break_periods": [{"start": "12:00", "end": "13:00", "name": "점심시간"}],
+      "time_slots": {}
+    },
+    "wednesday": {
+      "is_open": true,
+      "open_time": "09:00",
+      "close_time": "18:00", 
+      "break_periods": [{"start": "12:00", "end": "13:00", "name": "점심시간"}],
+      "time_slots": {}
+    },
+    "thursday": {
+      "is_open": true,
+      "open_time": "09:00",
+      "close_time": "18:00",
+      "break_periods": [{"start": "12:00", "end": "13:00", "name": "점심시간"}],
+      "time_slots": {}
+    },
+    "friday": {
+      "is_open": true,
+      "open_time": "09:00",
+      "close_time": "18:00",
+      "break_periods": [{"start": "12:00", "end": "13:00", "name": "점심시간"}],
+      "time_slots": {}
+    },
+    "saturday": {
+      "is_open": false,
+      "open_time": null,
+      "close_time": null,
+      "break_periods": [],
+      "time_slots": {}
+    },
+    "sunday": {
+      "is_open": false,
+      "open_time": null,
+      "close_time": null,
+      "break_periods": [],
+      "time_slots": {}
+    }
+  }'::JSONB;
+
+  INSERT INTO weekly_schedule_templates (store_id, template_name, schedule_data)
+  VALUES (p_store_id, p_template_name, default_schedule)
+  RETURNING id INTO template_id;
+  
+  RETURN template_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 시간 슬롯 생성 헬퍼 함수
+CREATE OR REPLACE FUNCTION generate_time_slots(
+  p_start_time TIME,
+  p_end_time TIME,
+  p_slot_minutes INTEGER DEFAULT 30
+) RETURNS TEXT[] AS $$
+DECLARE
+  slots TEXT[] := '{}';
+  slot_time TIME := p_start_time;
+BEGIN
+  WHILE slot_time < p_end_time LOOP
+    slots := array_append(slots, slot_time::TEXT);
+    slot_time := slot_time + (p_slot_minutes || ' minutes')::INTERVAL;
+  END LOOP;
+  
+  RETURN slots;
+END;
+$$ LANGUAGE plpgsql;
 
 -- 스케줄 예외사항 테이블 (멀티 스토어 지원)
 CREATE TABLE schedule_exceptions (
@@ -423,15 +517,29 @@ CREATE POLICY "Users can update their own stores" ON public.store_settings
 CREATE POLICY "Users can delete their own stores" ON public.store_settings
   FOR DELETE USING (auth.uid() = owner_id);
 
--- 스토어 소유자만 직원 데이터 접근 가능 (employees)
-CREATE POLICY "Users can access employees of their stores" ON public.employees
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.store_settings 
-      WHERE store_settings.id = employees.store_id 
-      AND store_settings.owner_id = auth.uid()
+-- 직원 데이터 접근 제어 (employees) - owner_id 기반
+CREATE POLICY "employees_select_policy" ON employees
+  FOR SELECT
+  USING (auth.uid() = owner_id);
+
+CREATE POLICY "employees_insert_policy" ON employees
+  FOR INSERT
+  WITH CHECK (
+    auth.uid() = owner_id 
+    AND EXISTS (
+      SELECT 1 FROM store_settings 
+      WHERE id = store_id AND owner_id = auth.uid()
     )
   );
+
+CREATE POLICY "employees_update_policy" ON employees
+  FOR UPDATE
+  USING (auth.uid() = owner_id)
+  WITH CHECK (auth.uid() = owner_id);
+
+CREATE POLICY "employees_delete_policy" ON employees
+  FOR DELETE
+  USING (auth.uid() = owner_id);
 
 -- 스토어 소유자만 근무 스케줄 접근 가능 (work_schedules)
 CREATE POLICY "Users can access work schedules of their stores" ON public.work_schedules
@@ -473,3 +581,30 @@ CREATE POLICY "Users can access payroll of their employees" ON public.payroll_ca
       AND s.owner_id = auth.uid()
     )
   );
+
+-- 직원 생성 시 자동으로 owner_id 설정하는 함수
+CREATE OR REPLACE FUNCTION set_employee_owner()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- owner_id가 설정되지 않은 경우 현재 사용자로 설정
+  IF NEW.owner_id IS NULL THEN
+    NEW.owner_id := auth.uid();
+  END IF;
+  
+  -- 해당 스토어의 소유자인지 확인
+  IF NOT EXISTS (
+    SELECT 1 FROM store_settings 
+    WHERE id = NEW.store_id AND owner_id = NEW.owner_id
+  ) THEN
+    RAISE EXCEPTION '해당 스토어에 직원을 추가할 권한이 없습니다.';
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 트리거 생성
+CREATE TRIGGER trigger_set_employee_owner
+  BEFORE INSERT OR UPDATE ON employees
+  FOR EACH ROW
+  EXECUTE FUNCTION set_employee_owner();

@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { 
   Calendar, 
@@ -18,403 +17,294 @@ import {
   Store,
   Users,
   Copy,
-  Play
+  Play,
+  Settings,
+  X,
+  AlertCircle,
+  Save,
+  RotateCcw,
+  Coffee,
+  Eye
 } from 'lucide-react'
+import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
+import { useScheduleTemplates } from '@/lib/hooks/useScheduleTemplates'
+import { 
+  WeeklyTemplateData, 
+  DayOfWeek, 
+  DAY_NAMES, 
+  DAY_ORDER, 
+  WeekScheduleData, 
+  DaySchedule, 
+  BreakPeriod 
+} from '@/lib/types/schedule'
+import { 
+  createDefaultWeekSchedule,
+  generateTimeSlots,
+  updateDayOperatingHours,
+  updateDayBreakPeriods,
+  addEmployeeToTimeSlot,
+  removeEmployeeFromTimeSlot
+} from '@/lib/utils/schedule-utils'
 
-
-interface StoreData {
-  id: number
-  owner_id: string
-  open_time: string
-  close_time: string
-}
-
-interface EmployeeData {
-  id: number
-  store_id?: number
-  name: string
-  is_active: boolean
-}
-
-interface WeeklyTemplateData {
-  id: number
-  store_id?: number
-  template_name: string
-  monday_start?: string
-  monday_end?: string
-  tuesday_start?: string
-  tuesday_end?: string
-  wednesday_start?: string
-  wednesday_end?: string
-  thursday_start?: string
-  thursday_end?: string
-  friday_start?: string
-  friday_end?: string
-  saturday_start?: string
-  saturday_end?: string
-  sunday_start?: string
-  sunday_end?: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
-
+// 폼 데이터 인터페이스
 interface TemplateFormData {
-  store_id: number | null
   template_name: string
-  monday_start: string
-  monday_end: string
-  tuesday_start: string
-  tuesday_end: string
-  wednesday_start: string
-  wednesday_end: string
-  thursday_start: string
-  thursday_end: string
-  friday_start: string
-  friday_end: string
-  saturday_start: string
-  saturday_end: string
-  sunday_start: string
-  sunday_end: string
-  is_active: boolean
+  schedule_data: WeekScheduleData
 }
 
-const DAYS = [
-  { key: 'monday', label: '월요일' },
-  { key: 'tuesday', label: '화요일' },
-  { key: 'wednesday', label: '수요일' },
-  { key: 'thursday', label: '목요일' },
-  { key: 'friday', label: '금요일' },
-  { key: 'saturday', label: '토요일' },
-  { key: 'sunday', label: '일요일' }
-]
+export default function ScheduleTemplatesPage() {
+  const { user } = useAuth()
+  const {
+    templates,
+    stores,
+    employees,
+    currentStore,
+    loading,
+    error,
+    loadTemplates,
+    loadStores,
+    loadEmployees,
+    setCurrentStore,
+    createTemplate,
+    updateTemplate,
+    toggleTemplateStatus,
+    removeTemplate,
+    createDefaultTemplate,
+    clearError
+  } = useScheduleTemplates()
 
-export default function TemplatesPage() {
-  const { user, loading } = useAuth()
-  const [stores, setStores] = useState<StoreData[]>([])
-  const [employees, setEmployees] = useState<EmployeeData[]>([])
-  const [templates, setTemplates] = useState<WeeklyTemplateData[]>([])
-  const [loadingData, setLoadingData] = useState(true)
+  // 로컬 상태
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<WeeklyTemplateData | null>(null)
   const [formData, setFormData] = useState<TemplateFormData>({
-    store_id: null,
     template_name: '',
-    monday_start: '09:00',
-    monday_end: '18:00',
-    tuesday_start: '09:00',
-    tuesday_end: '18:00',
-    wednesday_start: '09:00',
-    wednesday_end: '18:00',
-    thursday_start: '09:00',
-    thursday_end: '18:00',
-    friday_start: '09:00',
-    friday_end: '18:00',
-    saturday_start: '09:00',
-    saturday_end: '18:00',
-    sunday_start: '',
-    sunday_end: '',
-    is_active: true
+    schedule_data: createDefaultWeekSchedule()
   })
-  const [submitting, setSubmitting] = useState(false)
-  const [selectedStore, setSelectedStore] = useState<number | 'all'>('all')
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday')
 
-  // 데이터 로드
+  // 초기 데이터 로드
   useEffect(() => {
     if (user) {
-      loadData()
+      loadStores(user.id)
     }
-  }, [user])
+  }, [user, loadStores])
 
-  const loadData = async () => {
-    try {
-      setLoadingData(true)
-
-      // 스토어 데이터 로드
-      const { data: storesData, error: storesError } = await supabase
-        .from('store_settings')
-        .select('*')
-        .eq('owner_id', user?.id)
-        .order('created_at', { ascending: false })
-
-      if (storesError) {
-        console.error('스토어 로드 오류:', storesError)
-        alert('스토어 데이터를 불러오는데 실패했습니다')
-      } else {
-        setStores(storesData || [])
-      }
-
-      // 직원 데이터 로드
-      const { data: employeesData, error: employeesError } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('is_active', true)
-        .order('name', { ascending: true })
-
-      if (employeesError) {
-        console.error('직원 로드 오류:', employeesError)
-        alert('직원 데이터를 불러오는데 실패했습니다')
-      } else {
-        setEmployees(employeesData || [])
-      }
-
-      // 템플릿 데이터 로드
-      const { data: templatesData, error: templatesError } = await supabase
-        .from('weekly_schedule_templates')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (templatesError) {
-        console.error('템플릿 로드 오류:', templatesError)
-        alert('템플릿 데이터를 불러오는데 실패했습니다')
-      } else {
-        setTemplates(templatesData || [])
-      }
-
-    } catch (error) {
-      console.error('데이터 로드 중 예외:', error)
-      alert('예상치 못한 오류가 발생했습니다')
-    } finally {
-      setLoadingData(false)
+  // 현재 스토어가 변경되면 템플릿과 직원 목록 로드
+  useEffect(() => {
+    if (currentStore) {
+      loadTemplates(currentStore.id)
+      loadEmployees(currentStore.id)
     }
-  }
+  }, [currentStore, loadTemplates, loadEmployees])
 
-  const handleCreateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user || !formData.store_id) return
-
-    try {
-      setSubmitting(true)
-      const { data, error } = await supabase
-        .from('weekly_schedule_templates')
-        .insert([formData])
-        .select()
-
-      if (error) {
-        console.error('템플릿 생성 오류:', error)
-        alert('템플릿 생성에 실패했습니다')
-      } else {
-        alert('템플릿이 성공적으로 생성되었습니다')
-        setShowCreateForm(false)
-        resetForm()
-        loadData() // 목록 새로고침
-      }
-    } catch (error) {
-      console.error('템플릿 생성 중 예외:', error)
-      alert('예상치 못한 오류가 발생했습니다')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleUpdateTemplate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingTemplate) return
-
-    try {
-      setSubmitting(true)
-      const { error } = await supabase
-        .from('weekly_schedule_templates')
-        .update(formData)
-        .eq('id', editingTemplate.id)
-
-      if (error) {
-        console.error('템플릿 수정 오류:', error)
-        alert('템플릿 수정에 실패했습니다')
-      } else {
-        alert('템플릿이 성공적으로 수정되었습니다')
-        setEditingTemplate(null)
-        resetForm()
-        loadData() // 목록 새로고침
-      }
-    } catch (error) {
-      console.error('템플릿 수정 중 예외:', error)
-      alert('예상치 못한 오류가 발생했습니다')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleDeleteTemplate = async (templateId: number) => {
-    if (!confirm('정말로 이 템플릿을 삭제하시겠습니까?')) return
-
-    try {
-      const { error } = await supabase
-        .from('weekly_schedule_templates')
-        .delete()
-        .eq('id', templateId)
-
-      if (error) {
-        console.error('템플릿 삭제 오류:', error)
-        alert('템플릿 삭제에 실패했습니다')
-      } else {
-        alert('템플릿이 성공적으로 삭제되었습니다')
-        loadData() // 목록 새로고침
-      }
-    } catch (error) {
-      console.error('템플릿 삭제 중 예외:', error)
-      alert('예상치 못한 오류가 발생했습니다')
-    }
-  }
-
-  const toggleTemplateStatus = async (template: WeeklyTemplateData) => {
-    try {
-      const { error } = await supabase
-        .from('weekly_schedule_templates')
-        .update({ is_active: !template.is_active })
-        .eq('id', template.id)
-
-      if (error) {
-        console.error('템플릿 상태 변경 오류:', error)
-        alert('템플릿 상태 변경에 실패했습니다')
-      } else {
-        alert(`템플릿이 ${!template.is_active ? '활성화' : '비활성화'}되었습니다`)
-        loadData() // 목록 새로고침
-      }
-    } catch (error) {
-      console.error('템플릿 상태 변경 중 예외:', error)
-      alert('예상치 못한 오류가 발생했습니다')
-    }
-  }
-
-  const duplicateTemplate = (template: WeeklyTemplateData) => {
+  // 폼 초기화
+  const resetForm = () => {
     setFormData({
-      store_id: template.store_id || null,
-      template_name: `${template.template_name} (복사본)`,
-      monday_start: template.monday_start || '09:00',
-      monday_end: template.monday_end || '18:00',
-      tuesday_start: template.tuesday_start || '09:00',
-      tuesday_end: template.tuesday_end || '18:00',
-      wednesday_start: template.wednesday_start || '09:00',
-      wednesday_end: template.wednesday_end || '18:00',
-      thursday_start: template.thursday_start || '09:00',
-      thursday_end: template.thursday_end || '18:00',
-      friday_start: template.friday_start || '09:00',
-      friday_end: template.friday_end || '18:00',
-      saturday_start: template.saturday_start || '09:00',
-      saturday_end: template.saturday_end || '18:00',
-      sunday_start: template.sunday_start || '',
-      sunday_end: template.sunday_end || '',
-      is_active: true
+      template_name: '',
+      schedule_data: createDefaultWeekSchedule()
     })
-    setShowCreateForm(true)
     setEditingTemplate(null)
+    setShowCreateForm(false)
+    setSelectedDay('monday')
   }
 
+  // 템플릿 생성/수정 처리
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!currentStore) return
+
+    try {
+      if (editingTemplate) {
+        await updateTemplate(editingTemplate.id, formData.template_name, formData.schedule_data)
+      } else {
+        await createTemplate(currentStore.id, formData.template_name, formData.schedule_data)
+      }
+      resetForm()
+    } catch (err) {
+      console.error('템플릿 저장 오류:', err)
+    }
+  }
+
+  // 템플릿 편집 시작
   const startEdit = (template: WeeklyTemplateData) => {
     setEditingTemplate(template)
     setFormData({
-      store_id: template.store_id || null,
       template_name: template.template_name,
-      monday_start: template.monday_start || '09:00',
-      monday_end: template.monday_end || '18:00',
-      tuesday_start: template.tuesday_start || '09:00',
-      tuesday_end: template.tuesday_end || '18:00',
-      wednesday_start: template.wednesday_start || '09:00',
-      wednesday_end: template.wednesday_end || '18:00',
-      thursday_start: template.thursday_start || '09:00',
-      thursday_end: template.thursday_end || '18:00',
-      friday_start: template.friday_start || '09:00',
-      friday_end: template.friday_end || '18:00',
-      saturday_start: template.saturday_start || '09:00',
-      saturday_end: template.saturday_end || '18:00',
-      sunday_start: template.sunday_start || '',
-      sunday_end: template.sunday_end || '',
-      is_active: template.is_active
+      schedule_data: template.schedule_data
     })
-    setShowCreateForm(false)
+    setShowCreateForm(true)
   }
 
-  const resetForm = () => {
+  // 템플릿 복사
+  const duplicateTemplate = (template: WeeklyTemplateData) => {
     setFormData({
-      store_id: null,
-      template_name: '',
-      monday_start: '09:00',
-      monday_end: '18:00',
-      tuesday_start: '09:00',
-      tuesday_end: '18:00',
-      wednesday_start: '09:00',
-      wednesday_end: '18:00',
-      thursday_start: '09:00',
-      thursday_end: '18:00',
-      friday_start: '09:00',
-      friday_end: '18:00',
-      saturday_start: '09:00',
-      saturday_end: '18:00',
-      sunday_start: '',
-      sunday_end: '',
-      is_active: true
+      template_name: `${template.template_name} (복사본)`,
+      schedule_data: template.schedule_data
     })
-  }
-
-  const cancelEdit = () => {
     setEditingTemplate(null)
-    setShowCreateForm(false)
-    resetForm()
+    setShowCreateForm(true)
   }
 
-  const getStoreById = (storeId?: number) => {
-    return stores.find(store => store.id === storeId)
+  // 요일 스케줄 업데이트
+  const updateDaySchedule = (day: DayOfWeek, updates: Partial<DaySchedule>) => {
+    setFormData(prev => ({
+      ...prev,
+      schedule_data: {
+        ...prev.schedule_data,
+        [day]: {
+          ...prev.schedule_data[day],
+          ...updates
+        }
+      }
+    }))
   }
 
-  const setAllDaysTime = (startTime: string, endTime: string) => {
-    setFormData({
-      ...formData,
-      monday_start: startTime,
-      monday_end: endTime,
-      tuesday_start: startTime,
-      tuesday_end: endTime,
-      wednesday_start: startTime,
-      wednesday_end: endTime,
-      thursday_start: startTime,
-      thursday_end: endTime,
-      friday_start: startTime,
-      friday_end: endTime,
-      saturday_start: startTime,
-      saturday_end: endTime
-    })
+  // 영업시간 변경
+  const handleOperatingHoursChange = (day: DayOfWeek, openTime: string | null, closeTime: string | null) => {
+    const slotMinutes = currentStore?.time_slot_minutes || 30
+    const newScheduleData = updateDayOperatingHours(
+      formData.schedule_data,
+      day,
+      openTime,
+      closeTime,
+      slotMinutes
+    )
+    setFormData(prev => ({ ...prev, schedule_data: newScheduleData }))
   }
 
-  const filteredTemplates = selectedStore === 'all' 
-    ? templates 
-    : templates.filter(template => template.store_id === selectedStore)
+  // 브레이크 시간 변경
+  const handleBreakPeriodsChange = (day: DayOfWeek, breakPeriods: BreakPeriod[]) => {
+    const newScheduleData = updateDayBreakPeriods(formData.schedule_data, day, breakPeriods)
+    setFormData(prev => ({ ...prev, schedule_data: newScheduleData }))
+  }
 
-  if (loading || loadingData) {
+  // 시간 슬롯에 직원 추가/제거
+  const toggleEmployeeInSlot = (day: DayOfWeek, timeSlot: string, employeeId: number) => {
+    const currentEmployees = formData.schedule_data[day].time_slots[timeSlot] || []
+    let newScheduleData: WeekScheduleData
+
+    if (currentEmployees.includes(employeeId)) {
+      newScheduleData = removeEmployeeFromTimeSlot(formData.schedule_data, day, timeSlot, employeeId)
+    } else {
+      const slotMinutes = currentStore?.time_slot_minutes || 30
+      newScheduleData = addEmployeeToTimeSlot(formData.schedule_data, day, timeSlot, employeeId, slotMinutes)
+    }
+
+    setFormData(prev => ({ ...prev, schedule_data: newScheduleData }))
+  }
+
+  if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">템플릿 데이터를 불러오는 중...</p>
-        </div>
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="text-center py-12">
+            <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">로그인이 필요합니다</h3>
+            <p className="text-gray-600">스케줄 템플릿을 관리하려면 먼저 로그인해주세요.</p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">주간 템플릿 관리</h1>
+          <h1 className="text-2xl font-bold text-gray-900">주간 스케줄 템플릿 관리</h1>
           <p className="text-gray-600">반복되는 주간 스케줄을 템플릿으로 관리하세요</p>
         </div>
-        <Button 
-          onClick={() => {
-            setShowCreateForm(true)
-            setEditingTemplate(null)
-          }}
-          className="flex items-center space-x-2"
-          disabled={stores.length === 0}
-        >
-          <Plus className="h-4 w-4" />
-          <span>새 템플릿 생성</span>
-        </Button>
+        <div className="flex space-x-2">
+          {currentStore && (
+            <>
+              <Link
+                href="/test/comprehensive/templates/employees"
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                <Users size={20} />
+                직원 관리
+              </Link>
+              <Link
+                href="/test/comprehensive/templates/breaks"
+                className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+              >
+                <Coffee size={20} />
+                브레이크 시간 설정
+              </Link>
+              <Link
+                href="/test/comprehensive/templates/schedules"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                <Calendar size={20} />
+                근무 스케줄 관리
+              </Link>
+              <Link
+                href="/test/comprehensive/templates/schedule-view"
+                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+              >
+                <Eye size={20} />
+                스케줄표 보기
+              </Link>
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                className="flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>새 템플릿</span>
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* 스토어가 없는 경우 안내 */}
-      {stores.length === 0 && (
+      {/* 에러 메시지 */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="flex items-center justify-between py-3">
+            <div className="flex items-center space-x-2 text-red-700">
+              <AlertCircle className="h-4 w-4" />
+              <span>{error}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={clearError}>
+              <X className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 스토어 선택 */}
+      {stores.length > 0 && (
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center space-x-4">
+              <Label htmlFor="store-select">스토어 선택:</Label>
+              <Select 
+                value={currentStore?.id.toString() || ''} 
+                onValueChange={(value) => {
+                  const store = stores.find(s => s.id === parseInt(value))
+                  setCurrentStore(store || null)
+                }}
+              >
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="스토어를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {stores.map((store) => (
+                    <SelectItem key={store.id} value={store.id.toString()}>
+                      {store.store_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 스토어가 없는 경우 */}
+      {stores.length === 0 && !loading && (
         <Card>
           <CardContent className="text-center py-12">
             <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -422,315 +312,245 @@ export default function TemplatesPage() {
               먼저 스토어를 생성해주세요
             </h3>
             <p className="text-gray-600 mb-4">
-              주간 템플릿을 생성하려면 먼저 스토어가 필요합니다
+              스케줄 템플릿을 생성하려면 먼저 스토어가 필요합니다
             </p>
             <Button asChild>
-              <a href="/test/comprehensive/stores">스토어 관리로 이동</a>
+              <a href="/test/comprehensive">메인 페이지로 이동</a>
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {stores.length > 0 && (
-        <>
-          {/* 스토어 필터 */}
-          <div className="flex items-center space-x-4">
-            <Label htmlFor="store-filter">스토어 필터:</Label>
-            <Select value={selectedStore.toString()} onValueChange={(value) => setSelectedStore(value === 'all' ? 'all' : parseInt(value))}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 스토어</SelectItem>
-                {stores.map((store) => (
-                  <SelectItem key={store.id} value={store.id.toString()}>
-                    스토어 #{store.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* 템플릿 생성/편집 폼 */}
+      {showCreateForm && currentStore && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>{editingTemplate ? '템플릿 편집' : '새 템플릿 생성'}</span>
+              <Button variant="ghost" size="sm" onClick={resetForm}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* 템플릿 이름 */}
+              <div>
+                <Label htmlFor="template_name">템플릿 이름</Label>
+                <Input
+                  id="template_name"
+                  value={formData.template_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, template_name: e.target.value }))}
+                  placeholder="예: 평일 기본 스케줄"
+                  required
+                />
+              </div>
 
-          {/* 템플릿 생성/수정 폼 */}
-          {(showCreateForm || editingTemplate) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5" />
-                  <span>{editingTemplate ? '템플릿 수정' : '새 템플릿 생성'}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={editingTemplate ? handleUpdateTemplate : handleCreateTemplate} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="store_id">스토어 *</Label>
-                      <Select 
-                        value={formData.store_id?.toString() || ''} 
-                        onValueChange={(value) => setFormData({...formData, store_id: parseInt(value)})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="스토어를 선택하세요" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {stores.map((store) => (
-                            <SelectItem key={store.id} value={store.id.toString()}>
-                              스토어 #{store.id} ({store.open_time}-{store.close_time})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="template_name">템플릿 이름 *</Label>
-                      <Input
-                        id="template_name"
-                        value={formData.template_name}
-                        onChange={(e) => setFormData({...formData, template_name: e.target.value})}
-                        placeholder="예: 주중 기본 스케줄"
-                        required
-                      />
-                    </div>
-                  </div>
+              {/* 요일 선택 탭 */}
+              <div>
+                <Label>요일별 설정</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {DAY_ORDER.map((day) => (
+                    <Button
+                      key={day}
+                      type="button"
+                      variant={selectedDay === day ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedDay(day)}
+                    >
+                      {DAY_NAMES[day]}
+                    </Button>
+                  ))}
+                </div>
+              </div>
 
-                  {/* 일괄 설정 */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium mb-2">일괄 시간 설정</h4>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setAllDaysTime('09:00', '18:00')}
-                      >
-                        09:00-18:00
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setAllDaysTime('10:00', '19:00')}
-                      >
-                        10:00-19:00
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setAllDaysTime('11:00', '20:00')}
-                      >
-                        11:00-20:00
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* 요일별 시간 설정 */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium">요일별 근무시간</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {DAYS.map((day) => (
-                        <div key={day.key} className="flex items-center space-x-4">
-                          <div className="w-16 text-sm font-medium">{day.label}</div>
-                          <div className="flex items-center space-x-2">
-                            <Input
-                              type="time"
-                              value={formData[`${day.key}_start` as keyof TemplateFormData] as string}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                [`${day.key}_start`]: e.target.value
-                              })}
-                              className="w-32"
-                            />
-                            <span className="text-gray-500">-</span>
-                            <Input
-                              type="time"
-                              value={formData[`${day.key}_end` as keyof TemplateFormData] as string}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                [`${day.key}_end`]: e.target.value
-                              })}
-                              className="w-32"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setFormData({
-                                ...formData,
-                                [`${day.key}_start`]: '',
-                                [`${day.key}_end`]: ''
-                              })}
-                            >
-                              휴무
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
+              {/* 선택된 요일 설정 */}
+              <Card className="border-gray-200">
+                <CardHeader>
+                  <CardTitle className="text-lg">{DAY_NAMES[selectedDay]} 설정</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* 영업 여부 */}
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      id="is_active"
-                      checked={formData.is_active}
-                      onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                      id={`${selectedDay}_is_open`}
+                      checked={formData.schedule_data[selectedDay].is_open}
+                      onChange={(e) => updateDaySchedule(selectedDay, { is_open: e.target.checked })}
                     />
-                    <Label htmlFor="is_active">활성 상태</Label>
+                    <Label htmlFor={`${selectedDay}_is_open`}>영업일</Label>
                   </div>
 
-                  <div className="flex space-x-2">
-                    <Button type="submit" disabled={submitting}>
-                      {submitting ? '처리 중...' : (editingTemplate ? '수정하기' : '생성하기')}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={cancelEdit}>
-                      취소
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* 템플릿 목록 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredTemplates.length > 0 ? (
-              filteredTemplates.map((template) => {
-                const store = getStoreById(template.store_id)
-                return (
-                  <Card key={template.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="h-5 w-5" />
-                          <span>{template.template_name}</span>
+                  {formData.schedule_data[selectedDay].is_open && (
+                    <>
+                      {/* 영업시간 */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor={`${selectedDay}_open`}>오픈 시간</Label>
+                          <Input
+                            id={`${selectedDay}_open`}
+                            type="time"
+                            value={formData.schedule_data[selectedDay].open_time || '09:00'}
+                            onChange={(e) => handleOperatingHoursChange(
+                              selectedDay, 
+                              e.target.value, 
+                              formData.schedule_data[selectedDay].close_time
+                            )}
+                          />
                         </div>
-                        <div className="flex space-x-1">
+                        <div>
+                          <Label htmlFor={`${selectedDay}_close`}>마감 시간</Label>
+                          <Input
+                            id={`${selectedDay}_close`}
+                            type="time"
+                            value={formData.schedule_data[selectedDay].close_time || '18:00'}
+                            onChange={(e) => handleOperatingHoursChange(
+                              selectedDay, 
+                              formData.schedule_data[selectedDay].open_time, 
+                              e.target.value
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 브레이크 시간 (간단한 버전) */}
+                      <div>
+                        <Label>브레이크 시간</Label>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {formData.schedule_data[selectedDay].break_periods.length > 0 
+                            ? formData.schedule_data[selectedDay].break_periods.map(bp => 
+                                `${bp.name}: ${bp.start}-${bp.end}`
+                              ).join(', ')
+                            : '브레이크 시간 없음'
+                          }
+                        </div>
+                      </div>
+
+                      {/* 시간 슬롯별 직원 배치 (간단한 버전) */}
+                      {formData.schedule_data[selectedDay].open_time && 
+                       formData.schedule_data[selectedDay].close_time && (
+                        <div>
+                          <Label>시간대별 근무자 배치</Label>
+                          <div className="mt-2 text-sm text-gray-600">
+                            {currentStore.time_slot_minutes}분 단위로 시간 슬롯이 생성됩니다.
+                            <br />
+                            직원 배치 기능은 향후 추가될 예정입니다.
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 저장 버튼 */}
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  취소
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {editingTemplate ? '수정' : '생성'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 템플릿 목록 */}
+      {currentStore && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>템플릿 목록</span>
+              <Badge variant="secondary">{templates.length}개</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading && (
+              <div className="text-center py-8 text-gray-500">
+                로딩 중...
+              </div>
+            )}
+
+            {!loading && templates.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  템플릿이 없습니다
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  첫 번째 스케줄 템플릿을 생성해보세요
+                </p>
+                <Button onClick={() => setShowCreateForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  템플릿 생성
+                </Button>
+              </div>
+            )}
+
+            {!loading && templates.length > 0 && (
+              <div className="space-y-4">
+                {templates.map((template) => (
+                  <Card key={template.id} className="border-gray-200">
+                    <CardContent className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-medium">{template.template_name}</h3>
+                            <Badge variant={template.is_active ? "default" : "secondary"}>
+                              {template.is_active ? '활성' : '비활성'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            생성일: {new Date(template.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => duplicateTemplate(template)}
-                            title="복사"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => startEdit(template)}
-                            title="수정"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteTemplate(template.id)}
-                            className="text-red-600 hover:text-red-700"
-                            title="삭제"
+                            onClick={() => duplicateTemplate(template)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleTemplateStatus(template.id, !template.is_active)}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm('정말 삭제하시겠습니까?')) {
+                                removeTemplate(template.id)
+                              }
+                            }}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          {store ? `스토어 #${store.id}` : '스토어 미지정'}
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        {DAYS.map((day) => {
-                          const startTime = template[`${day.key}_start` as keyof WeeklyTemplateData] as string
-                          const endTime = template[`${day.key}_end` as keyof WeeklyTemplateData] as string
-                          
-                          return (
-                            <div key={day.key} className="flex justify-between text-sm">
-                              <span className="font-medium">{day.label}</span>
-                              <span className={startTime && endTime ? 'text-gray-900' : 'text-gray-400'}>
-                                {startTime && endTime ? `${startTime} - ${endTime}` : '휴무'}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      <Separator />
-                      
-                      <div className="flex items-center justify-between">
-                        <Badge variant={template.is_active ? 'default' : 'secondary'}>
-                          {template.is_active ? '활성' : '비활성'}
-                        </Badge>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleTemplateStatus(template)}
-                          >
-                            {template.is_active ? '비활성화' : '활성화'}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-gray-500">
-                        생성일: {new Date(template.created_at).toLocaleDateString('ko-KR')}
                       </div>
                     </CardContent>
                   </Card>
-                )
-              })
-            ) : (
-              <div className="col-span-full">
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {selectedStore === 'all' ? '등록된 템플릿이 없습니다' : '해당 스토어에 등록된 템플릿이 없습니다'}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      첫 번째 주간 템플릿을 생성하여 스케줄 관리를 시작하세요
-                    </p>
-                    <Button 
-                      onClick={() => setShowCreateForm(true)}
-                      className="flex items-center space-x-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>첫 템플릿 생성하기</span>
-                    </Button>
-                  </CardContent>
-                </Card>
+                ))}
               </div>
             )}
-          </div>
-        </>
+          </CardContent>
+        </Card>
       )}
-
-      {/* 도움말 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>주간 템플릿 도움말</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-gray-600">
-            • <strong>템플릿 이름:</strong> 구분하기 쉬운 이름을 설정하세요 (예: 주중 기본, 주말 특별)
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>일괄 설정:</strong> 모든 요일에 동일한 시간을 적용할 때 사용하세요
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>휴무 설정:</strong> 특정 요일을 휴무로 설정하려면 &apos;휴무&apos; 버튼을 클릭하세요
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>템플릿 복사:</strong> 기존 템플릿을 복사하여 유사한 스케줄을 빠르게 생성할 수 있습니다
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>활성/비활성:</strong> 사용하지 않는 템플릿은 비활성화하여 관리하세요
-          </p>
-        </CardContent>
-      </Card>
     </div>
   )
 }

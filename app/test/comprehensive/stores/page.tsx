@@ -22,16 +22,14 @@ import { toast } from 'sonner'
 interface StoreData {
   id: number
   owner_id: string
-  open_time: string
-  close_time: string
+  store_name: string
   time_slot_minutes: number
   created_at: string
   updated_at: string
 }
 
 interface StoreFormData {
-  open_time: string
-  close_time: string
+  store_name: string
   time_slot_minutes: number
 }
 
@@ -42,8 +40,7 @@ export default function StoresPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingStore, setEditingStore] = useState<StoreData | null>(null)
   const [formData, setFormData] = useState<StoreFormData>({
-    open_time: '09:00',
-    close_time: '18:00',
+    store_name: '',
     time_slot_minutes: 30
   })
   const [submitting, setSubmitting] = useState(false)
@@ -101,8 +98,7 @@ export default function StoresPage() {
         toast.success('스토어가 성공적으로 생성되었습니다')
         setShowCreateForm(false)
         setFormData({
-          open_time: '09:00',
-          close_time: '18:00',
+          store_name: '',
           time_slot_minutes: 30
         })
         loadStores() // 목록 새로고침
@@ -134,8 +130,7 @@ export default function StoresPage() {
         toast.success('스토어가 성공적으로 수정되었습니다')
         setEditingStore(null)
         setFormData({
-          open_time: '09:00',
-          close_time: '18:00',
+          store_name: '',
           time_slot_minutes: 30
         })
         loadStores() // 목록 새로고침
@@ -174,8 +169,7 @@ export default function StoresPage() {
   const startEdit = (store: StoreData) => {
     setEditingStore(store)
     setFormData({
-      open_time: store.open_time,
-      close_time: store.close_time,
+      store_name: store.store_name,
       time_slot_minutes: store.time_slot_minutes
     })
     setShowCreateForm(false)
@@ -185,8 +179,7 @@ export default function StoresPage() {
     setEditingStore(null)
     setShowCreateForm(false)
     setFormData({
-      open_time: '09:00',
-      close_time: '18:00',
+      store_name: '',
       time_slot_minutes: 30
     })
   }
@@ -233,27 +226,16 @@ export default function StoresPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={editingStore ? handleUpdateStore : handleCreateStore} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="open_time">오픈 시간</Label>
-                  <Input
-                    id="open_time"
-                    type="time"
-                    value={formData.open_time}
-                    onChange={(e) => setFormData({...formData, open_time: e.target.value})}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="close_time">마감 시간</Label>
-                  <Input
-                    id="close_time"
-                    type="time"
-                    value={formData.close_time}
-                    onChange={(e) => setFormData({...formData, close_time: e.target.value})}
-                    required
-                  />
-                </div>
+              <div>
+                <Label htmlFor="store_name">스토어 이름</Label>
+                <Input
+                  id="store_name"
+                  type="text"
+                  value={formData.store_name}
+                  onChange={(e) => setFormData({...formData, store_name: e.target.value})}
+                  placeholder="스토어 이름을 입력하세요"
+                  required
+                />
               </div>
               
               <div>
@@ -318,9 +300,9 @@ export default function StoresPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">
-                    {store.open_time} - {store.close_time}
+                  <Store className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">
+                    {store.store_name}
                   </span>
                 </div>
                 
