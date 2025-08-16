@@ -12,9 +12,11 @@ import {
   Minus,
   Save,
   Settings,
-  User
+  User,
+  HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // 타입 정의
 interface StoreSettings {
@@ -61,6 +63,9 @@ export default function ScheduleViewPage() {
   // 직원 선택 모달 상태
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [currentSlot, setCurrentSlot] = useState<{day: string, time: string} | null>(null);
+  
+  // 도움말 툴팁 상태
+  const [showHelp, setShowHelp] = useState(false);
 
   // 스토어 목록 로드
   const loadStores = async () => {
@@ -303,7 +308,7 @@ export default function ScheduleViewPage() {
   // 로딩 상태
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
@@ -315,7 +320,7 @@ export default function ScheduleViewPage() {
   // 에러 상태
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 mb-4">{error}</div>
           <button 
@@ -331,7 +336,7 @@ export default function ScheduleViewPage() {
 
   if (!stores || stores.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">스토어가 없습니다</h2>
@@ -348,99 +353,124 @@ export default function ScheduleViewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/schedule"
-                className="flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                스케줄 관리로 돌아가기
-              </Link>
-            </div>
-            <button
-              onClick={saveSchedule}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              저장
-            </button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <Calendar className="h-8 w-8 mr-3 text-blue-600" />
-                스케줄 템플릿 편집
-              </h1>
-              <p className="text-gray-600 mt-2">
-                시간대별로 근무 인원을 배치하여 스케줄 템플릿을 만들어보세요.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 스토어 선택 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">스토어 선택</h2>
-            <div className="text-sm text-gray-500">
-              시간 슬롯: {selectedStore?.time_slot_minutes || 30}분 단위
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stores.map((store) => (
-              <button
-                key={store.id}
-                onClick={() => setSelectedStore(store)}
-                className={`p-4 rounded-lg border-2 text-left transition-all ${
-                  selectedStore?.id === store.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="font-medium text-gray-900">{store.store_name}</div>
-                <div className="text-sm text-gray-500 mt-1">
-                  ID: {store.id}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 템플릿 선택 */}
-        {selectedStore && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">템플릿 선택</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {templates.map((template) => (
+        <div className="mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-900">스케줄 관리</h1>
+              <div className="relative">
                 <button
-                  key={template.id}
-                  onClick={() => {
-                    setSelectedTemplate(template);
-                    setScheduleData(template.schedule_data);
-                  }}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
-                    selectedTemplate?.id === template.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                  onClick={() => setShowHelp(!showHelp)}
+                  className={`p-1 transition-colors rounded-full ${
+                    showHelp 
+                      ? 'text-blue-600 bg-blue-50' 
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
                   }`}
+                  title="도움말"
                 >
-                  <div className="font-medium text-gray-900">{template.template_name}</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    ID: {template.id}
-                  </div>
+                  <HelpCircle className="h-5 w-5" />
                 </button>
-              ))}
+                {showHelp && (
+                  <>
+                    {/* 클릭 영역 (투명한 오버레이) */}
+                    <div 
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowHelp(false)}
+                    />
+                    {/* 툴팁 */}
+                    <div className="absolute top-8 left-0 z-50 w-80 p-4 bg-white rounded-sm border shadow-lg animate-in fade-in-0 zoom-in-95 duration-200">
+                      <div className="text-sm text-gray-600">
+                        <p className="font-medium mb-2">스케줄 관리 사용법:</p>
+                        <ul className="space-y-1 text-xs">
+                          <li>• 스토어와 템플릿을 선택하세요</li>
+                          <li>• 시간대별로 + 버튼을 클릭해 직원을 배치하세요</li>
+                          <li>• 직원 옆 - 버튼으로 배치를 취소할 수 있습니다</li>
+                          <li>• 변경사항은 자동으로 저장됩니다</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {/* 컨트롤 영역 */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* 스토어 선택 */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  스토어:
+                </label>
+                <Select
+                  value={selectedStore?.id.toString() || ""}
+                  onValueChange={(value) => {
+                    const store = stores.find(s => s.id.toString() === value);
+                    if (store) setSelectedStore(store);
+                  }}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stores.map((store) => (
+                      <SelectItem key={store.id} value={store.id.toString()}>
+                        {store.store_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 템플릿 선택 */}
+              {selectedStore && (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    템플릿:
+                  </label>
+                  <Select
+                    value={selectedTemplate?.id.toString() || ""}
+                    onValueChange={(value) => {
+                      const template = templates.find(t => t.id.toString() === value);
+                      if (template) {
+                        setSelectedTemplate(template);
+                        setScheduleData(template.schedule_data);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          {template.template_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* 저장 버튼 */}
+              <button
+                onClick={saveSchedule}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                저장
+              </button>
             </div>
           </div>
-        )}
+          
+          {/* 정보 표시 */}
+          {selectedStore && (
+            <div className="text-sm text-gray-500">
+              시간 슬롯: {selectedStore.time_slot_minutes}분 • 직원 수: {employees.length}명
+            </div>
+          )}
+        </div>
 
         {/* 스케줄 표 */}
         {selectedStore && selectedTemplate && timeSlots.length > 0 && (
@@ -541,56 +571,65 @@ export default function ScheduleViewPage() {
 
       {/* 직원 선택 모달 */}
       {showEmployeeModal && currentSlot && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">직원 선택</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              {dayNames[days.indexOf(currentSlot.day)]} {currentSlot.time}에 배치할 직원을 선택하세요.
-            </p>
-            
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {employees.map((employee) => {
-                const isAlreadyAssigned = getSlotEmployees(currentSlot.day, currentSlot.time)
-                  .some(emp => emp.id === employee.id);
-                
-                return (
-                  <button
-                    key={employee.id}
-                    onClick={() => handleEmployeeSelect(employee.id)}
-                    disabled={isAlreadyAssigned}
-                    className={`w-full p-3 text-left rounded-lg border ${
-                      isAlreadyAssigned 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'hover:bg-blue-50 border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
-                      <div>
-                        <div className="font-medium">{employee.name}</div>
-                        {employee.position && (
-                          <div className="text-sm text-gray-500">{employee.position}</div>
+        <>
+          {/* 투명한 배경 클릭 영역 */}
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={closeEmployeeModal}
+          />
+          
+          {/* 모달 콘텐츠 */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-white rounded-sm shadow-xl border p-6 w-full max-w-md mx-4 pointer-events-auto animate-in fade-in-0 zoom-in-95 duration-200">
+              <h3 className="text-lg font-semibold mb-4">직원 선택</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {dayNames[days.indexOf(currentSlot.day)]} {currentSlot.time}에 배치할 직원을 선택하세요.
+              </p>
+              
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {employees.map((employee) => {
+                  const isAlreadyAssigned = getSlotEmployees(currentSlot.day, currentSlot.time)
+                    .some(emp => emp.id === employee.id);
+                  
+                  return (
+                    <button
+                      key={employee.id}
+                      onClick={() => handleEmployeeSelect(employee.id)}
+                      disabled={isAlreadyAssigned}
+                      className={`w-full p-3 text-left rounded-sm border transition-colors ${
+                        isAlreadyAssigned 
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                          : 'hover:bg-blue-50 border-gray-200 hover:border-blue-200'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 mr-2" />
+                        <div>
+                          <div className="font-medium">{employee.name}</div>
+                          {employee.position && (
+                            <div className="text-sm text-gray-500">{employee.position}</div>
+                          )}
+                        </div>
+                        {isAlreadyAssigned && (
+                          <div className="ml-auto text-xs text-gray-400">이미 배치됨</div>
                         )}
                       </div>
-                      {isAlreadyAssigned && (
-                        <div className="ml-auto text-xs text-gray-400">이미 배치됨</div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            
-            <div className="flex justify-end space-x-2 mt-6">
-              <button
-                onClick={closeEmployeeModal}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              >
-                취소
-              </button>
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <div className="flex justify-end space-x-2 mt-6">
+                <button
+                  onClick={closeEmployeeModal}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-sm transition-colors"
+                >
+                  취소
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

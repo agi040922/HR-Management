@@ -77,7 +77,13 @@ interface SidebarSection {
   isCollapsible?: boolean
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  isMobile?: boolean
+  onMobileClose?: () => void
+  onCollapse?: (isCollapsed: boolean) => void
+}
+
+export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: SidebarProps) {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
@@ -204,6 +210,13 @@ export function Sidebar() {
     }
   ]
 
+  const handleLinkClick = (href: string) => {
+    // 모바일에서 링크 클릭 시 사이드바 닫기
+    if (isMobile && onMobileClose) {
+      onMobileClose()
+    }
+  }
+
   const renderSidebarItem = (item: SidebarItem, isSubItem = false) => {
     const isActive = pathname === item.href || item.isActive
     const Icon = item.icon
@@ -230,7 +243,10 @@ export function Sidebar() {
           }}
           title={isCollapsed ? item.title : undefined}
         >
-          <Link href={item.href}>
+          <Link 
+            href={item.href}
+            onClick={() => handleLinkClick(item.href)}
+          >
             <Icon className={cn("h-4 w-4", !isCollapsed && "mr-2")} />
             {!isCollapsed && item.title}
           </Link>
@@ -250,6 +266,7 @@ export function Sidebar() {
         
         <Link
           href={item.href}
+          onClick={() => handleLinkClick(item.href)}
           className={cn(
             "flex items-center text-sm font-medium transition-all duration-150 cursor-pointer relative",
             isCollapsed ? "justify-center px-2 py-2" : isSubItem ? "gap-2 px-2 py-1.5 ml-4" : "gap-2 px-2 py-1.5",
@@ -377,12 +394,13 @@ export function Sidebar() {
 
   return (
     <div 
-      className="flex flex-col transition-all duration-300"
+      className="flex flex-col transition-all duration-300 bg-white shadow-lg"
       style={{
-        width: isCollapsed ? '72px' : '220px',
-        height: 'calc(100vh - 64px)', // 헤더 높이 64px 제외
+        width: isCollapsed && !isMobile ? '72px' : '220px',
+        height: '100vh',
         backgroundColor: '#FFFFFF',
-        borderRight: `1px solid ${DESIGN_COLORS.background.border}`
+        borderRight: `1px solid ${DESIGN_COLORS.background.border}`,
+        zIndex: 45
       }}
     >
       {/* 헤더 영역 */}
@@ -400,7 +418,11 @@ export function Sidebar() {
           </span>
         )}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => {
+            const newCollapsedState = !isCollapsed
+            setIsCollapsed(newCollapsedState)
+            onCollapse?.(newCollapsedState)
+          }}
           className="p-1 rounded-md transition-colors duration-150 hover:bg-gray-100"
           style={{
             color: DESIGN_COLORS.text.secondary

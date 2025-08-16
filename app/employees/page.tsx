@@ -26,6 +26,7 @@ import { toast } from 'sonner'
 interface StoreData {
   id: number
   owner_id: string
+  store_name: string
   open_time: string
   close_time: string
   time_slot_minutes: number
@@ -265,76 +266,106 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">직원 관리</h1>
-          <p className="text-gray-600">스토어별 직원을 등록하고 관리하세요</p>
-        </div>
-        <Button 
-          onClick={() => {
-            setShowCreateForm(true)
-            setEditingEmployee(null)
-          }}
-          className="flex items-center space-x-2"
-          disabled={stores.length === 0}
-        >
-          <Plus className="h-4 w-4" />
-          <span>새 직원 등록</span>
-        </Button>
-      </div>
-
-      {/* 스토어가 없는 경우 안내 */}
-      {stores.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              먼저 스토어를 생성해주세요
-            </h3>
-            <p className="text-gray-600 mb-4">
-              직원을 등록하려면 먼저 스토어가 필요합니다
-            </p>
-            <Button asChild>
-              <a href="/stores">스토어 관리로 이동</a>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 헤더 */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                <Users className="h-8 w-8 mr-3 text-blue-500" />
+                직원 관리
+              </h1>
+              <p className="text-gray-600 mt-2">
+                스토어별 직원을 등록하고 관리하세요.
+              </p>
+            </div>
+            <Button 
+              onClick={() => {
+                setShowCreateForm(true)
+                setEditingEmployee(null)
+              }}
+              className="flex items-center gap-2"
+              disabled={stores.length === 0}
+            >
+              <Plus className="h-4 w-4" />
+              새 직원 등록
             </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {stores.length > 0 && (
-        <>
-          {/* 스토어 필터 */}
-          <div className="flex items-center space-x-4">
-            <Label htmlFor="store-filter">스토어 필터:</Label>
-            <Select value={selectedStore.toString()} onValueChange={(value) => setSelectedStore(value === 'all' ? 'all' : parseInt(value))}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 스토어</SelectItem>
-                {stores.map((store) => (
-                  <SelectItem key={store.id} value={store.id.toString()}>
-                    스토어 #{store.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
+        </div>
 
-          {/* 직원 생성/수정 폼 */}
-          {(showCreateForm || editingEmployee) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="h-5 w-5" />
-                  <span>{editingEmployee ? '직원 정보 수정' : '새 직원 등록'}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={editingEmployee ? handleUpdateEmployee : handleCreateEmployee} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 스토어가 없는 경우 안내 */}
+        {stores.length === 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="text-center py-8">
+              <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                먼저 스토어를 생성해주세요
+              </h3>
+              <p className="text-gray-600 mb-4">
+                직원을 등록하려면 먼저 스토어가 필요합니다
+              </p>
+              <Button asChild>
+                <a href="/stores">스토어 관리로 이동</a>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {stores.length > 0 && (
+          <>
+            {/* 스토어 선택 */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Store className="h-5 w-5 mr-2" />
+                  스토어 선택
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setSelectedStore('all')}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    selectedStore === 'all'
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="font-medium text-gray-900">전체 스토어</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    모든 스토어의 직원 보기
+                  </div>
+                </button>
+                {stores.map((store) => (
+                  <button
+                    key={store.id}
+                    onClick={() => setSelectedStore(store.id)}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      selectedStore === store.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-medium text-gray-900">{store.store_name}</div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      운영시간: {store.open_time} - {store.close_time}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 직원 생성/수정 폼 */}
+            {(showCreateForm || editingEmployee) && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Users className="h-5 w-5 mr-2" />
+                    {editingEmployee ? '직원 정보 수정' : '새 직원 등록'}
+                  </h2>
+                </div>
+                <form onSubmit={editingEmployee ? handleUpdateEmployee : handleCreateEmployee} className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="store_id">소속 스토어 *</Label>
                       <Select 
@@ -347,7 +378,7 @@ export default function EmployeesPage() {
                         <SelectContent>
                           {stores.map((store) => (
                             <SelectItem key={store.id} value={store.id.toString()}>
-                              스토어 #{store.id} ({store.open_time}-{store.close_time})
+                              {store.store_name} ({store.open_time}-{store.close_time})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -363,9 +394,6 @@ export default function EmployeesPage() {
                         required
                       />
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="hourly_wage">시급 (원) *</Label>
                       <Input
@@ -389,28 +417,25 @@ export default function EmployeesPage() {
                         placeholder="예: 매니저, 파트타이머"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="phone">연락처</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        placeholder="010-1234-5678"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="is_active"
+                        checked={formData.is_active}
+                        onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                      />
+                      <Label htmlFor="is_active">활성 상태</Label>
+                    </div>
                   </div>
-
-                  <div>
-                    <Label htmlFor="phone">연락처</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      placeholder="010-1234-5678"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="is_active"
-                      checked={formData.is_active}
-                      onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                    />
-                    <Label htmlFor="is_active">활성 상태</Label>
-                  </div>
-
                   <div className="flex space-x-2">
                     <Button type="submit" disabled={submitting}>
                       {submitting ? '처리 중...' : (editingEmployee ? '수정하기' : '등록하기')}
@@ -420,140 +445,145 @@ export default function EmployeesPage() {
                     </Button>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* 직원 목록 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmployees.length > 0 ? (
-              filteredEmployees.map((employee) => {
-                const store = getStoreById(employee.store_id)
-                return (
-                  <Card key={employee.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Users className="h-5 w-5" />
-                          <span>{employee.name}</span>
-                        </div>
-                        <div className="flex space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleEmployeeStatus(employee)}
-                            title={employee.is_active ? '비활성화' : '활성화'}
-                          >
-                            {employee.is_active ? <UserCheck className="h-4 w-4 text-green-600" /> : <UserX className="h-4 w-4 text-red-600" />}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => startEdit(employee)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteEmployee(employee.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          {store ? `스토어 #${store.id}` : '스토어 미지정'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">
-                          시급 {employee.hourly_wage.toLocaleString()}원
-                        </span>
-                      </div>
-
-                      {employee.position && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">
-                            직책: {employee.position}
-                          </span>
-                        </div>
-                      )}
-
-                      {employee.phone && (
-                        <div className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm">{employee.phone}</span>
-                        </div>
-                      )}
-
-                      <Separator />
-                      
-                      <div className="flex items-center justify-between">
-                        <Badge variant={employee.is_active ? 'default' : 'secondary'}>
-                          {employee.is_active ? '활성' : '비활성'}
-                        </Badge>
-                        <div className="text-xs text-gray-500">
-                          등록: {new Date(employee.created_at).toLocaleDateString('ko-KR')}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })
-            ) : (
-              <div className="col-span-full">
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {selectedStore === 'all' ? '등록된 직원이 없습니다' : '해당 스토어에 등록된 직원이 없습니다'}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      첫 번째 직원을 등록하여 HR 관리를 시작하세요
-                    </p>
-                    <Button 
-                      onClick={() => setShowCreateForm(true)}
-                      className="flex items-center space-x-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>첫 직원 등록하기</span>
-                    </Button>
-                  </CardContent>
-                </Card>
               </div>
             )}
-          </div>
-        </>
-      )}
 
-      {/* 도움말 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>직원 관리 도움말</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-gray-600">
-            • <strong>소속 스토어:</strong> 직원이 근무할 스토어를 지정합니다
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>시급 설정:</strong> 2025년 최저시급(10,030원) 이상으로 설정하세요
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>활성/비활성:</strong> 퇴사한 직원은 비활성화하여 관리할 수 있습니다
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>급여 계산:</strong> 등록된 직원 정보를 바탕으로 자동 급여 계산이 가능합니다
-          </p>
-        </CardContent>
-      </Card>
+            {/* 직원 목록 */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  직원 목록 ({filteredEmployees.length}명)
+                </h2>
+              </div>
+              
+              {filteredEmployees.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredEmployees.map((employee) => {
+                    const store = getStoreById(employee.store_id)
+                    return (
+                      <Card key={employee.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Users className="h-5 w-5" />
+                              <span>{employee.name}</span>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleEmployeeStatus(employee)}
+                                title={employee.is_active ? '비활성화' : '활성화'}
+                              >
+                                {employee.is_active ? <UserCheck className="h-4 w-4 text-green-600" /> : <UserX className="h-4 w-4 text-red-600" />}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => startEdit(employee)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteEmployee(employee.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <Store className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm">
+                              {store ? store.store_name : '스토어 미지정'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm">
+                              시급 {employee.hourly_wage.toLocaleString()}원
+                            </span>
+                          </div>
+
+                          {employee.position && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-600">
+                                직책: {employee.position}
+                              </span>
+                            </div>
+                          )}
+
+                          {employee.phone && (
+                            <div className="flex items-center space-x-2">
+                              <Phone className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm">{employee.phone}</span>
+                            </div>
+                          )}
+
+                          <Separator />
+                          
+                          <div className="flex items-center justify-between">
+                            <Badge variant={employee.is_active ? 'default' : 'secondary'}>
+                              {employee.is_active ? '활성' : '비활성'}
+                            </Badge>
+                            <div className="text-xs text-gray-500">
+                              등록: {new Date(employee.created_at).toLocaleDateString('ko-KR')}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {selectedStore === 'all' ? '등록된 직원이 없습니다' : '해당 스토어에 등록된 직원이 없습니다'}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    첫 번째 직원을 등록하여 HR 관리를 시작하세요
+                  </p>
+                  <Button 
+                    onClick={() => setShowCreateForm(true)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>첫 직원 등록하기</span>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* 도움말 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">직원 관리 도움말</h2>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600">
+              • <strong>소속 스토어:</strong> 직원이 근무할 스토어를 지정합니다
+            </p>
+            <p className="text-sm text-gray-600">
+              • <strong>시급 설정:</strong> 2025년 최저시급(10,030원) 이상으로 설정하세요
+            </p>
+            <p className="text-sm text-gray-600">
+              • <strong>활성/비활성:</strong> 퇴사한 직원은 비활성화하여 관리할 수 있습니다
+            </p>
+            <p className="text-sm text-gray-600">
+              • <strong>급여 계산:</strong> 등록된 직원 정보를 바탕으로 자동 급여 계산이 가능합니다
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
 import { 
   AlertTriangle, 
   Plus, 
@@ -94,7 +93,6 @@ export default function ExceptionsPage() {
     if (selectedStore) {
       loadEmployees(selectedStore.id)
       loadExceptions(selectedStore.id)
-      // 폼 데이터의 store_id 업데이트
       setFormData(prev => ({ ...prev, store_id: selectedStore.id }))
     }
   }, [selectedStore])
@@ -158,6 +156,7 @@ export default function ExceptionsPage() {
     }
   };
 
+  // 예외사항 생성
   const handleCreateException = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user || !formData.store_id) return
@@ -165,7 +164,6 @@ export default function ExceptionsPage() {
     try {
       setSubmitting(true)
       
-      // CANCEL 타입이 아닌 경우에만 시간 정보 포함
       const insertData = {
         ...formData,
         start_time: formData.exception_type !== 'CANCEL' ? formData.start_time : null,
@@ -184,7 +182,7 @@ export default function ExceptionsPage() {
         toast.success('예외사항이 성공적으로 등록되었습니다')
         setShowCreateForm(false)
         resetForm()
-        if (selectedStore) loadExceptions(selectedStore.id) // 목록 새로고침
+        if (selectedStore) loadExceptions(selectedStore.id)
       }
     } catch (error) {
       console.error('예외사항 생성 중 예외:', error)
@@ -194,9 +192,10 @@ export default function ExceptionsPage() {
     }
   }
 
+  // 예외사항 수정
   const handleUpdateException = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editingException) return
+    if (!user || !editingException) return
 
     try {
       setSubmitting(true)
@@ -219,7 +218,7 @@ export default function ExceptionsPage() {
         toast.success('예외사항이 성공적으로 수정되었습니다')
         setEditingException(null)
         resetForm()
-        if (selectedStore) loadExceptions(selectedStore.id) // 목록 새로고침
+        if (selectedStore) loadExceptions(selectedStore.id)
       }
     } catch (error) {
       console.error('예외사항 수정 중 예외:', error)
@@ -229,9 +228,8 @@ export default function ExceptionsPage() {
     }
   }
 
+  // 예외사항 삭제
   const handleDeleteException = async (exceptionId: number) => {
-    if (!confirm('정말로 이 예외사항을 삭제하시겠습니까?')) return
-
     try {
       const { error } = await supabase
         .from('schedule_exceptions')
@@ -243,7 +241,7 @@ export default function ExceptionsPage() {
         toast.error('예외사항 삭제에 실패했습니다')
       } else {
         toast.success('예외사항이 성공적으로 삭제되었습니다')
-        if (selectedStore) loadExceptions(selectedStore.id) // 목록 새로고침
+        if (selectedStore) loadExceptions(selectedStore.id)
       }
     } catch (error) {
       console.error('예외사항 삭제 중 예외:', error)
@@ -251,6 +249,7 @@ export default function ExceptionsPage() {
     }
   }
 
+  // 수정 시작
   const startEdit = (exception: ExceptionData) => {
     setEditingException(exception)
     setFormData({
@@ -265,9 +264,10 @@ export default function ExceptionsPage() {
     setShowCreateForm(false)
   }
 
+  // 폼 리셋
   const resetForm = () => {
     setFormData({
-      store_id: null,
+      store_id: selectedStore?.id || null,
       employee_id: null,
       date: new Date().toISOString().split('T')[0],
       exception_type: 'CANCEL',
@@ -277,22 +277,11 @@ export default function ExceptionsPage() {
     })
   }
 
+  // 편집 취소
   const cancelEdit = () => {
     setEditingException(null)
     setShowCreateForm(false)
     resetForm()
-  }
-
-  const getStoreById = (storeId?: number) => {
-    return stores.find(store => store.id === storeId)
-  }
-
-  const getEmployeeById = (employeeId?: number) => {
-    return employees.find(employee => employee.id === employeeId && employee.store_id === selectedStore?.id)
-  }
-
-  const getFilteredEmployees = () => {
-    return employees.filter(emp => emp.store_id === selectedStore?.id)
   }
 
   // 이번주 예외사항 필터링
@@ -312,6 +301,7 @@ export default function ExceptionsPage() {
     })
   }
 
+  // 예외사항 타입 라벨
   const getExceptionTypeLabel = (type: string) => {
     switch (type) {
       case 'CANCEL': return '휴무'
@@ -321,6 +311,7 @@ export default function ExceptionsPage() {
     }
   }
 
+  // 예외사항 타입 배지 변형
   const getExceptionTypeBadgeVariant = (type: string) => {
     switch (type) {
       case 'CANCEL': return 'destructive'
@@ -344,32 +335,39 @@ export default function ExceptionsPage() {
   const thisWeekExceptions = getThisWeekExceptions()
 
   return (
-    <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-6 w-6 text-orange-500" />
-          <h1 className="text-2xl font-bold">예외사항 관리</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 헤더 */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                <AlertTriangle className="h-8 w-8 mr-3 text-orange-500" />
+                예외사항 관리
+              </h1>
+              <p className="text-gray-600 mt-2">
+                스토어별 근무 예외사항을 등록하고 관리하세요.
+              </p>
+            </div>
+            <Button 
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2"
+              disabled={!selectedStore}
+            >
+              <Plus className="h-4 w-4" />
+              예외사항 추가
+            </Button>
+          </div>
         </div>
-        <Button 
-          onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2"
-          disabled={!selectedStore}
-        >
-          <Plus className="h-4 w-4" />
-          예외사항 추가
-        </Button>
-      </div>
 
-      {/* 스토어 선택 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Store className="h-5 w-5" />
-            스토어 선택
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        {/* 스토어 선택 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Store className="h-5 w-5 mr-2" />
+              스토어 선택
+            </h2>
+          </div>
           {stores.length === 0 ? (
             <div className="text-center py-8">
               <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -384,69 +382,63 @@ export default function ExceptionsPage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="store-select">스토어</Label>
-                <Select 
-                  value={selectedStore?.id.toString() || ''} 
-                  onValueChange={(value) => {
-                    const store = stores.find(s => s.id.toString() === value)
-                    setSelectedStore(store || null)
-                  }}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stores.map((store) => (
+                <button
+                  key={store.id}
+                  onClick={() => setSelectedStore(store)}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    selectedStore?.id === store.id
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="스토어를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.id.toString()}>
-                        스토어 #{store.id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {selectedStore && (
-                <div className="text-sm text-gray-600">
-                  선택된 스토어: 스토어 #{selectedStore.id} (운영시간: {selectedStore.open_time} - {selectedStore.close_time})
-                </div>
-              )}
+                  <div className="font-medium text-gray-900">스토어 #{store.id}</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    운영시간: {store.open_time} - {store.close_time}
+                  </div>
+                </button>
+              ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {selectedStore && (
-        <>
-          {/* 예외사항 생성/수정 폼 */}
-          {(showCreateForm || editingException) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  <span>{editingException ? '예외사항 수정' : '새 예외사항 등록'}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={editingException ? handleUpdateException : handleCreateException} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {selectedStore && (
+          <>
+            {/* 예외사항 생성/수정 폼 */}
+            {(showCreateForm || editingException) && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <AlertTriangle className="h-5 w-5 mr-2" />
+                    {editingException ? '예외사항 수정' : '새 예외사항 등록'}
+                  </h2>
+                </div>
+                <form onSubmit={editingException ? handleUpdateException : handleCreateException} className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="store_id">스토어 *</Label>
+                      <Label htmlFor="date">날짜 *</Label>
+                      <Input
+                        type="date"
+                        id="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="exception_type">예외사항 유형 *</Label>
                       <Select 
-                        value={formData.store_id?.toString() || ''} 
-                        onValueChange={(value) => {
-                          setFormData({...formData, store_id: parseInt(value), employee_id: null})
-                        }}
+                        value={formData.exception_type} 
+                        onValueChange={(value) => setFormData({...formData, exception_type: value as 'CANCEL' | 'OVERRIDE' | 'ADDITIONAL'})}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="스토어를 선택하세요" />
+                          <SelectValue placeholder="예외사항 유형을 선택하세요" />
                         </SelectTrigger>
                         <SelectContent>
-                          {stores.map((store) => (
-                            <SelectItem key={store.id} value={store.id.toString()}>
-                              스토어 #{store.id}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="CANCEL">휴무 (CANCEL)</SelectItem>
+                          <SelectItem value="OVERRIDE">시간 변경 (OVERRIDE)</SelectItem>
+                          <SelectItem value="ADDITIONAL">추가 근무 (ADDITIONAL)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -461,7 +453,7 @@ export default function ExceptionsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">전체 직원</SelectItem>
-                          {getFilteredEmployees().map((employee) => (
+                          {employees.map((employee) => (
                             <SelectItem key={employee.id} value={employee.id.toString()}>
                               {employee.name}
                             </SelectItem>
@@ -469,74 +461,38 @@ export default function ExceptionsPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {formData.exception_type !== 'CANCEL' && (
+                      <>
+                        <div>
+                          <Label htmlFor="start_time">시작 시간</Label>
+                          <Input
+                            type="time"
+                            id="start_time"
+                            value={formData.start_time}
+                            onChange={(e) => setFormData({...formData, start_time: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="end_time">종료 시간</Label>
+                          <Input
+                            type="time"
+                            id="end_time"
+                            value={formData.end_time}
+                            onChange={(e) => setFormData({...formData, end_time: e.target.value})}
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="date">날짜 *</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="exception_type">예외 유형 *</Label>
-                      <Select 
-                        value={formData.exception_type} 
-                        onValueChange={(value: 'CANCEL' | 'OVERRIDE' | 'ADDITIONAL') => 
-                          setFormData({...formData, exception_type: value})
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="CANCEL">휴무 (CANCEL)</SelectItem>
-                          <SelectItem value="OVERRIDE">시간 변경 (OVERRIDE)</SelectItem>
-                          <SelectItem value="ADDITIONAL">추가 근무 (ADDITIONAL)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* 휴무가 아닌 경우에만 시간 입력 */}
-                  {formData.exception_type !== 'CANCEL' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="start_time">시작 시간</Label>
-                        <Input
-                          id="start_time"
-                          type="time"
-                          value={formData.start_time}
-                          onChange={(e) => setFormData({...formData, start_time: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="end_time">종료 시간</Label>
-                        <Input
-                          id="end_time"
-                          type="time"
-                          value={formData.end_time}
-                          onChange={(e) => setFormData({...formData, end_time: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  )}
-
                   <div>
                     <Label htmlFor="notes">메모</Label>
                     <Textarea
                       id="notes"
                       value={formData.notes}
                       onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                      placeholder="예외사항에 대한 추가 설명을 입력하세요"
-                      rows={3}
+                      placeholder="추가 메모사항을 입력하세요"
                     />
                   </div>
-
                   <div className="flex space-x-2">
                     <Button type="submit" disabled={submitting}>
                       {submitting ? '처리 중...' : (editingException ? '수정하기' : '등록하기')}
@@ -546,233 +502,205 @@ export default function ExceptionsPage() {
                     </Button>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* 예외사항 목록 탭 */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="this-week">이번주 예외사항</TabsTrigger>
-              <TabsTrigger value="all">전체 예외사항</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="this-week" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">이번주 예외사항 ({thisWeekExceptions.length}건)</h3>
               </div>
-              
-              {thisWeekExceptions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {thisWeekExceptions.map((exception) => {
-                    const store = getStoreById(exception.store_id)
-                    const employee = getEmployeeById(exception.employee_id)
-                    return (
-                      <Card key={exception.id} className="hover:shadow-md transition-shadow">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="h-5 w-5" />
-                              <span>{new Date(exception.date).toLocaleDateString('ko-KR')}</span>
-                            </div>
-                            <div className="flex space-x-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => startEdit(exception)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteException(exception.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Badge variant={getExceptionTypeBadgeVariant(exception.exception_type)}>
-                              {getExceptionTypeLabel(exception.exception_type)}
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Store className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">
-                              {store ? `스토어 #${store.id}` : '스토어 미지정'}
-                            </span>
-                          </div>
+            )}
 
-                          {employee && (
-                            <div className="flex items-center space-x-2">
-                              <Users className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm">{employee.name}</span>
-                            </div>
-                          )}
-
-                          {exception.start_time && exception.end_time && (
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm">
-                                {exception.start_time} - {exception.end_time}
-                              </span>
-                            </div>
-                          )}
-
-                          {exception.notes && (
-                            <>
-                              <Separator />
-                              <p className="text-sm text-gray-600">{exception.notes}</p>
-                            </>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      이번주 예외사항이 없습니다
-                    </h3>
-                    <p className="text-gray-600">
-                      평상시와 다른 스케줄이 있다면 예외사항을 등록하세요
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="all" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">전체 예외사항 ({exceptions.length}건)</h3>
+            {/* 예외사항 목록 */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  예외사항 목록
+                </h2>
               </div>
-              
-              {exceptions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {exceptions.map((exception) => {
-                    const store = getStoreById(exception.store_id)
-                    const employee = getEmployeeById(exception.employee_id)
-                    return (
-                      <Card key={exception.id} className="hover:shadow-md transition-shadow">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="h-5 w-5" />
-                              <span>{new Date(exception.date).toLocaleDateString('ko-KR')}</span>
-                            </div>
-                            <div className="flex space-x-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => startEdit(exception)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteException(exception.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Badge variant={getExceptionTypeBadgeVariant(exception.exception_type)}>
-                              {getExceptionTypeLabel(exception.exception_type)}
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Store className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm">
-                              {store ? `스토어 #${store.id}` : '스토어 미지정'}
-                            </span>
-                          </div>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="this-week">이번주 예외사항</TabsTrigger>
+                  <TabsTrigger value="all">전체 예외사항</TabsTrigger>
+                </TabsList>
 
-                          {employee && (
-                            <div className="flex items-center space-x-2">
-                              <Users className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm">{employee.name}</span>
-                            </div>
-                          )}
+                <TabsContent value="this-week" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">이번주 예외사항 ({thisWeekExceptions.length}건)</h3>
+                  </div>
+                  
+                  {thisWeekExceptions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {thisWeekExceptions.map((exception) => {
+                        const employee = employees.find(emp => emp.id === exception.employee_id)
+                        return (
+                          <Card key={exception.id} className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <Calendar className="h-5 w-5" />
+                                  <span>{new Date(exception.date).toLocaleDateString('ko-KR')}</span>
+                                </div>
+                                <div className="flex space-x-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => startEdit(exception)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteException(exception.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Badge variant={getExceptionTypeBadgeVariant(exception.exception_type)}>
+                                  {getExceptionTypeLabel(exception.exception_type)}
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Users className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">
+                                  {employee ? employee.name : '전체 직원'}
+                                </span>
+                              </div>
 
-                          {exception.start_time && exception.end_time && (
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4 text-gray-500" />
-                              <span className="text-sm">
-                                {exception.start_time} - {exception.end_time}
-                              </span>
-                            </div>
-                          )}
+                              {exception.exception_type !== 'CANCEL' && exception.start_time && exception.end_time && (
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">
+                                    {exception.start_time} - {exception.end_time}
+                                  </span>
+                                </div>
+                              )}
 
-                          {exception.notes && (
-                            <>
-                              <Separator />
-                              <p className="text-sm text-gray-600">{exception.notes}</p>
-                            </>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              ) : (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      등록된 예외사항이 없습니다
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      첫 번째 예외사항을 등록하여 스케줄 관리를 시작하세요
-                    </p>
-                    <Button 
-                      onClick={() => setShowCreateForm(true)}
-                      className="flex items-center space-x-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>첫 예외사항 등록하기</span>
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
+                              {exception.notes && (
+                                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                                  {exception.notes}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">이번주 예외사항이 없습니다.</p>
+                    </div>
+                  )}
+                </TabsContent>
 
-      {/* 도움말 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>예외사항 관리 도움말</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-gray-600">
-            • <strong>휴무 (CANCEL):</strong> 해당 날짜에 근무하지 않는 경우
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>시간 변경 (OVERRIDE):</strong> 기본 근무시간과 다르게 근무하는 경우
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>추가 근무 (ADDITIONAL):</strong> 평소보다 추가로 근무하는 경우
-          </p>
-          <p className="text-sm text-gray-600">
-            • <strong>직원 선택:</strong> 특정 직원만 해당하는 경우 선택, 전체 적용시 선택하지 않음
-          </p>
-        </CardContent>
-      </Card>
+                <TabsContent value="all" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">전체 예외사항 ({exceptions.length}건)</h3>
+                  </div>
+                  
+                  {exceptions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {exceptions.map((exception) => {
+                        const employee = employees.find(emp => emp.id === exception.employee_id)
+                        return (
+                          <Card key={exception.id} className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <Calendar className="h-5 w-5" />
+                                  <span>{new Date(exception.date).toLocaleDateString('ko-KR')}</span>
+                                </div>
+                                <div className="flex space-x-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => startEdit(exception)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteException(exception.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Badge variant={getExceptionTypeBadgeVariant(exception.exception_type)}>
+                                  {getExceptionTypeLabel(exception.exception_type)}
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                <Users className="h-4 w-4 text-gray-500" />
+                                <span className="text-sm">
+                                  {employee ? employee.name : '전체 직원'}
+                                </span>
+                              </div>
+
+                              {exception.exception_type !== 'CANCEL' && exception.start_time && exception.end_time && (
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="h-4 w-4 text-gray-500" />
+                                  <span className="text-sm">
+                                    {exception.start_time} - {exception.end_time}
+                                  </span>
+                                </div>
+                              )}
+
+                              {exception.notes && (
+                                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                                  {exception.notes}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">등록된 예외사항이 없습니다.</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+          </>
+        )}
+
+        {/* 사용법 안내 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              사용법 안내
+            </h2>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600">
+              • <strong>휴무 (CANCEL):</strong> 해당 날짜에 근무하지 않는 경우
+            </p>
+            <p className="text-sm text-gray-600">
+              • <strong>시간 변경 (OVERRIDE):</strong> 기본 근무시간과 다르게 근무하는 경우
+            </p>
+            <p className="text-sm text-gray-600">
+              • <strong>추가 근무 (ADDITIONAL):</strong> 평소보다 추가로 근무하는 경우
+            </p>
+            <p className="text-sm text-gray-600">
+              • <strong>직원 선택:</strong> 특정 직원만 해당하는 경우 선택, 전체 적용시 선택하지 않음
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
