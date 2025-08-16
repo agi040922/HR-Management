@@ -248,6 +248,40 @@ export default function ScheduleViewPage() {
     return employees.filter(emp => employeeIds.includes(emp.id));
   };
 
+  // 직원별 주간 근무시간 계산
+  const calculateWeeklyWorkHours = () => {
+    const workHours: {[employeeId: number]: {name: string, hours: number, shifts: number}} = {};
+    
+    employees.forEach(employee => {
+      workHours[employee.id] = {
+        name: employee.name,
+        hours: 0,
+        shifts: 0
+      };
+    });
+
+    if (selectedStore && scheduleData) {
+      days.forEach(day => {
+        const dayData = scheduleData[day];
+        if (dayData?.is_open && dayData.time_slots) {
+          Object.keys(dayData.time_slots).forEach(timeSlot => {
+            const employeeIds = dayData.time_slots[timeSlot] || [];
+            employeeIds.forEach((employeeId: number) => {
+              if (workHours[employeeId]) {
+                workHours[employeeId].hours += (selectedStore.time_slot_minutes / 60);
+                workHours[employeeId].shifts += 1;
+              }
+            });
+          });
+        }
+      });
+    }
+
+    return Object.values(workHours)
+      .filter(emp => emp.hours > 0)
+      .sort((a, b) => b.hours - a.hours);
+  };
+
   // 스케줄 저장
   const saveSchedule = async () => {
     if (!selectedTemplate) return;
@@ -474,9 +508,42 @@ export default function ScheduleViewPage() {
 
         {/* 스케줄 표 */}
         {selectedStore && selectedTemplate && timeSlots.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">주간 스케줄</h2>
-            
+          <div className="bg-white rounded border shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">주간 스케줄</h2>
+              <div className="text-sm text-gray-500 text-right">
+                {(() => {
+                  const workStats = calculateWeeklyWorkHours();
+                  const totalHours = workStats.reduce((sum, emp) => sum + emp.hours, 0);
+                  const activeEmployees = workStats.length;
+                  
+                  if (activeEmployees === 0) {
+                    return <span>배치된 직원 없음</span>;
+                  }
+                  
+                  return (
+                    <div className="space-y-1">
+                      <div className="font-medium">
+                        총 {totalHours.toFixed(1)}시간 • {activeEmployees}명 배치
+                      </div>
+                      <div className="space-y-0.5">
+                        {workStats.slice(0, 4).map((emp, index) => (
+                          <div key={index} className="text-xs text-gray-400">
+                            {emp.name}: {emp.hours.toFixed(1)}h ({emp.shifts}회)
+                          </div>
+                        ))}
+                        {workStats.length > 4 && (
+                          <div className="text-xs text-gray-400">
+                            +{workStats.length - 4}명 더...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+              
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
@@ -531,7 +598,7 @@ export default function ScheduleViewPage() {
                                 {slotEmployees.map((employee) => (
                                   <div 
                                     key={employee.id}
-                                    className="flex items-center justify-between bg-blue-100 px-2 py-1 rounded text-sm"
+                                    className="flex items-center justify-between bg-blue-100 px-2 py-1 rounded-sm text-sm"
                                   >
                                     <span className="flex items-center">
                                       <User className="h-3 w-3 mr-1" />
@@ -549,7 +616,7 @@ export default function ScheduleViewPage() {
                                 {/* 직원 추가 버튼 */}
                                 <button
                                   onClick={() => openEmployeeModal(day, timeSlot)}
-                                  className="flex items-center justify-center w-full py-1 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-blue-500 hover:text-blue-500"
+                                  className="flex items-center justify-center w-full py-1 border-2 border-dashed border-gray-300 rounded-sm text-gray-500 hover:border-blue-500 hover:text-blue-500"
                                 >
                                   <Plus className="h-4 w-4" />
                                 </button>

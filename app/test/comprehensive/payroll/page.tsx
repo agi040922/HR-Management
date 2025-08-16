@@ -31,7 +31,7 @@ import {
   type InsuranceResult,
   type NetSalaryResult,
   type EmployerCostResult
-} from '@/lib/payroll-calculator-new'
+} from '@/lib/payroll-calculator-2025'
 
 interface StoreData {
   id: number

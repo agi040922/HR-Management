@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { OptimizationSuggestionComponent } from '@/components/optimization-suggestion'
+import { OptimizationSuggestionComponent } from '@/components/optimization-suggestion-2025'
 import { exampleEmployees, exampleSchedules } from '@/data/example-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Target, Lightbulb, AlertTriangle } from 'lucide-react'
@@ -59,11 +59,8 @@ export default function OptimizationPage() {
         </Card>
       </div>
 
-      {/* 메인 최적화 컴포넌트 */}
-      <OptimizationSuggestionComponent 
-        employees={exampleEmployees} 
-        schedules={exampleSchedules} 
-      />
+      {/* 최적화 제안 컴포넌트 */}
+      <OptimizationSuggestionComponent />
 
       {/* 성공 사례 및 팁 */}
       <Card>

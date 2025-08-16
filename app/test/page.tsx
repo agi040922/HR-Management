@@ -15,7 +15,7 @@ import {
   calculateEmployerCost,
   calculateInsurance,
   getComprehensivePayrollExamples 
-} from '@/lib/payroll-calculator-new'
+} from '@/lib/payroll-calculator-2025'
 
 export default function TestPage() {
   const [startTime, setStartTime] = useState('09:00')

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, Download, Eye, AlertCircle, Upload, Save, FileDown } from 'lucide-react';
+import { Download, Eye, AlertCircle, Upload, Save, FileDown, HelpCircle } from 'lucide-react';
 
 import { LaborContract, ContractType, CONTRACT_TEMPLATES, ValidationError } from '@/types/labor-contract';
 import { validateLaborContract, createDefaultContract, getContractTitle } from '@/lib/labor-contract-utils';
@@ -21,6 +21,7 @@ export default function LaborContractPage() {
   const [contract, setContract] = useState<LaborContract>(createDefaultContract('permanent'));
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // 계약서 유형 변경 시 기본 데이터 재설정
   useEffect(() => {
@@ -104,41 +105,62 @@ export default function LaborContractPage() {
   const hasErrors = validationErrors.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto">
         {/* 헤더 */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FileText className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">근로계약서 작성</h1>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                계약서 유형 선택
-              </label>
-              <Select value={selectedType} onValueChange={(value: ContractType) => setSelectedType(value)}>
-                <SelectTrigger className="w-full sm:w-96">
-                  <SelectValue placeholder="계약서 유형을 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONTRACT_TEMPLATES.map((template) => (
-                    <SelectItem key={template.type} value={template.type}>
-                      <div>
-                        <div className="font-medium">{template.title}</div>
-                        <div className="text-sm text-gray-500">{template.description}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3 relative">
+              <h1 className="text-3xl font-bold text-gray-900">근로계약서 작성</h1>
+              <button 
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setShowTooltip(!showTooltip)}
+              >
+                <HelpCircle className="h-5 w-5" />
+              </button>
+              {showTooltip && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowTooltip(false)}
+                  />
+                  <div className="absolute top-8 left-0 z-50 w-80 p-4 bg-white rounded-lg border shadow-lg">
+                    <div className="text-sm text-gray-600">
+                      <p className="font-medium mb-2">근로계약서 작성 가이드:</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>• 근로기준법에 따른 표준 근로계약서를 작성할 수 있습니다</li>
+                        <li>• 계약 유형을 먼저 선택하고 필수 정보를 입력하세요</li>
+                        <li>• 실시간으로 미리보기가 업데이트됩니다</li>
+                        <li>• 모든 필수 항목 입력 후 PDF로 다운로드 가능합니다</li>
+                      </ul>
+                    </div>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center gap-3">
+                <Select value={selectedType} onValueChange={(value: ContractType) => setSelectedType(value)}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="계약서 유형 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTRACT_TEMPLATES.map((template) => (
+                      <SelectItem key={template.type} value={template.type}>
+                        <div>
+                          <div className="font-medium">{template.title}</div>
+                          <div className="text-sm text-gray-500">{template.description}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={isPreviewMode ? "default" : "outline"}
                 onClick={() => setIsPreviewMode(!isPreviewMode)}
+                size="sm"
                 className="flex items-center gap-2"
               >
                 <Eye className="h-4 w-4" />
@@ -157,6 +179,7 @@ export default function LaborContractPage() {
               <Button
                 onClick={() => document.getElementById('json-import')?.click()}
                 variant="outline"
+                size="sm"
                 className="flex items-center gap-2"
               >
                 <Upload className="h-4 w-4" />
@@ -166,6 +189,7 @@ export default function LaborContractPage() {
               <Button
                 onClick={handleExportJSON}
                 variant="outline"
+                size="sm"
                 className="flex items-center gap-2"
               >
                 <FileDown className="h-4 w-4" />
@@ -176,6 +200,7 @@ export default function LaborContractPage() {
                 onClick={handleSaveContract}
                 disabled={hasErrors}
                 variant="outline"
+                size="sm"
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
@@ -185,7 +210,8 @@ export default function LaborContractPage() {
               <Button
                 onClick={handleGeneratePDF}
                 disabled={hasErrors}
-                className="flex items-center gap-2"
+                size="sm"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-4 w-4" />
                 PDF 다운로드
@@ -193,119 +219,103 @@ export default function LaborContractPage() {
             </div>
           </div>
 
-          {selectedTemplate && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-semibold text-blue-900 mb-2">{selectedTemplate.title}</h3>
-              <p className="text-blue-700 mb-3">{selectedTemplate.description}</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">
-                  필수 항목: {selectedTemplate.requiredFields.length}개
-                </Badge>
-                <Badge variant="outline">
-                  선택 항목: {selectedTemplate.optionalFields.length}개
-                </Badge>
-              </div>
-            </div>
-          )}
 
-          {/* 검증 오류 표시 */}
-          {hasErrors && (
-            <Alert className="mt-4 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                <div className="font-medium mb-2">다음 항목을 확인해주세요:</div>
-                <ul className="list-disc list-inside space-y-1">
-                  {validationErrors.slice(0, 5).map((error, index) => (
-                    <li key={index} className="text-sm">{error.message}</li>
-                  ))}
-                  {validationErrors.length > 5 && (
-                    <li className="text-sm text-gray-600">
-                      외 {validationErrors.length - 5}개 항목...
-                    </li>
-                  )}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
 
         {/* 메인 콘텐츠 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 입력 폼 */}
           <div className={`${isPreviewMode ? 'lg:block hidden' : 'block'}`}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  계약서 정보 입력
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ContractForm
-                  contract={contract}
-                  onChange={handleContractChange}
-                  validationErrors={validationErrors}
-                />
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 pb-2 border-b border-gray-200">계약서 정보 입력</h2>
+              <ContractForm
+                contract={contract}
+                onChange={handleContractChange}
+                validationErrors={validationErrors}
+              />
+            </div>
           </div>
 
           {/* 미리보기 */}
           <div className={`${isPreviewMode ? 'block' : 'lg:block hidden'}`}>
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
-                  실시간 미리보기
-                  {!hasErrors && (
-                    <Badge variant="default" className="ml-2">
-                      완료
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[80vh] overflow-y-auto">
+            <div className="space-y-4 sticky top-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900 pb-2 border-b border-gray-200 flex-1">실시간 미리보기</h2>
+                {!hasErrors && (
+                  <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200 ml-4">
+                    완료
+                  </Badge>
+                )}
+              </div>
+              <div className="max-h-[80vh] overflow-y-auto">
                 <ContractPreview contract={contract} />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 도움말 */}
         <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>사용 가이드</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">사용 가이드</h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
                 <div>
-                  <h4 className="font-semibold mb-2">📝 입력 방법</h4>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>• 계약서 유형을 먼저 선택하세요</li>
-                    <li>• 필수 항목부터 차례로 입력하세요</li>
-                    <li>• 실시간으로 미리보기가 업데이트됩니다</li>
+                  <h4 className="font-semibold mb-3 text-gray-900">입력 방법</h4>
+                  <ul className="space-y-2 text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>계약서 유형을 먼저 선택하세요</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>필수 항목부터 차례로 입력하세요</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>실시간으로 미리보기가 업데이트됩니다</span>
+                    </li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">⚠️ 주의사항</h4>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>• 최저시급 기준을 준수하세요</li>
-                    <li>• 법정 근로시간을 확인하세요</li>
-                    <li>• 연소근로자는 친권자 동의 필요</li>
+                  <h4 className="font-semibold mb-3 text-gray-900">주의사항</h4>
+                  <ul className="space-y-2 text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      <span>최저시급 기준을 준수하세요</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      <span>법정 근로시간을 확인하세요</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      <span>연소근로자는 친권자 동의 필요</span>
+                    </li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">💾 저장 및 출력</h4>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>• 모든 필수 항목 입력 후 저장 가능</li>
-                    <li>• PDF로 다운로드하여 출력하세요</li>
-                    <li>• 저장된 계약서는 나중에 수정 가능</li>
+                  <h4 className="font-semibold mb-3 text-gray-900">저장 및 출력</h4>
+                  <ul className="space-y-2 text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>모든 필수 항목 입력 후 저장 가능</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>PDF로 다운로드하여 출력하세요</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>저장된 계약서는 나중에 수정 가능</span>
+                    </li>
                   </ul>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

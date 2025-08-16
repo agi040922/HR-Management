@@ -1,19 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Plus, Minus, Building2, User, Clock, DollarSign, Shield } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 
 import { LaborContract, ValidationError, SalaryType, PaymentMethod } from '@/types/labor-contract';
-import { formatCurrency, getKoreanDayOfWeek } from '@/lib/labor-contract-utils';
+import { formatCurrency } from '@/lib/labor-contract-utils';
 
 interface ContractFormProps {
   contract: LaborContract;
@@ -44,7 +41,7 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
     });
   };
 
-  const updateSalary = (field: string, value: string | number | boolean) => {
+  const updateSalary = (field: string, value: any) => {
     onChange({
       salary: { ...contract.salary, [field]: value }
     });
@@ -73,16 +70,11 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* 사업주 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            사업주 정보
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">사업주 정보</h3>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="companyName">사업체명 *</Label>
@@ -152,18 +144,13 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 근로자 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            근로자 정보
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">근로자 정보</h3>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="employeeName">성명 *</Label>
@@ -208,7 +195,7 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
             )}
           </div>
 
-          {(contract.contractType === 'minor' || contract.contractType === 'foreign' || contract.contractType === 'foreign-agriculture') && (
+          {(contract.contractType === 'minor' || contract.contractType === 'foreign-worker' || contract.contractType === 'foreign-agriculture') && (
             <div>
               <Label htmlFor="birthdate">생년월일 {contract.contractType === 'minor' ? '*' : ''}</Label>
               <Input
@@ -223,18 +210,13 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 근로 조건 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            근로 조건
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">근로 조건</h3>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="workStartDate">근로개시일 *</Label>
@@ -376,18 +358,13 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 임금 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            임금 정보
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">임금 정보</h3>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="salaryType">급여 형태 *</Label>
@@ -518,45 +495,36 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 사회보험 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            사회보험 적용여부
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { key: 'employmentInsurance', label: '고용보험' },
-              { key: 'workersCompensation', label: '산재보험' },
-              { key: 'nationalPension', label: '국민연금' },
-              { key: 'healthInsurance', label: '건강보험' }
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center space-x-2">
-                <Checkbox
-                  id={key}
-                  checked={contract.socialInsurance[key as keyof typeof contract.socialInsurance]}
-                  onCheckedChange={(checked) => updateSocialInsurance(key, checked as boolean)}
-                />
-                <Label htmlFor={key}>{label}</Label>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">사회보험 적용여부</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { key: 'employmentInsurance', label: '고용보험' },
+            { key: 'workersCompensation', label: '산재보험' },
+            { key: 'nationalPension', label: '국민연금' },
+            { key: 'healthInsurance', label: '건강보험' }
+          ].map(({ key, label }) => (
+            <div key={key} className="flex items-center space-x-2">
+              <Checkbox
+                id={key}
+                checked={contract.socialInsurance[key as keyof typeof contract.socialInsurance]}
+                onCheckedChange={(checked) => updateSocialInsurance(key, checked as boolean)}
+              />
+              <Label htmlFor={key}>{label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 유형별 추가 정보 */}
       {contract.contractType === 'minor' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>연소근로자 추가 정보</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">연소근로자 추가 정보</h3>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="guardianName">친권자/후견인 성명 *</Label>
@@ -630,8 +598,8 @@ export default function ContractForm({ contract, onChange, validationErrors }: C
                 <Label htmlFor="familyCertificateProvided">가족관계증명서 제출</Label>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

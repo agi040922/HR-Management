@@ -315,11 +315,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 스케줄 예외사항 테이블 (멀티 스토어 지원)
+-- 스케줄 예외사항 테이블 (멀티 스토어 지원, JSONB 활용)
 CREATE TABLE schedule_exceptions (
   id SERIAL PRIMARY KEY,
   store_id INTEGER REFERENCES public.store_settings(id) ON DELETE CASCADE,
   employee_id INTEGER REFERENCES employees(id) ON DELETE CASCADE,
+  template_id INTEGER REFERENCES weekly_schedule_templates(id) ON DELETE SET NULL,
   date DATE NOT NULL,
   start_time TIME,
   end_time TIME,
@@ -328,10 +329,13 @@ CREATE TABLE schedule_exceptions (
   -- OVERRIDE: 해당 날짜 근무시간 변경
   -- ADDITIONAL: 추가 근무
   notes TEXT,
+  exception_data JSONB DEFAULT '{}', -- 예외사항 상세 정보
+  affected_slots JSONB DEFAULT '[]', -- 영향받는 시간대 정보
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
-  UNIQUE(employee_id, date, exception_type)
+  CONSTRAINT unique_exception_per_template_date_employee 
+    UNIQUE(template_id, employee_id, date, exception_type)
 );
 
 -- 근무시간 계산 함수

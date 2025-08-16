@@ -288,9 +288,6 @@ export default function LoginPage() {
                 >
                   {loading ? '로그인 중...' : 'GitHub로 로그인'}
                 </Button>
-                <div className="text-sm text-gray-500 mt-4">
-                  <p>* 소셜 로그인을 사용하려면 Supabase 대시보드에서 OAuth 제공자를 설정해야 합니다.</p>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>

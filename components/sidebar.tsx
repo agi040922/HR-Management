@@ -146,7 +146,7 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
         },
         {
           title: "임금 최적화",
-          href: "/optimization",
+          href: "/schedule/optimization",
           icon: TrendingUp
         }
       ]
@@ -159,6 +159,11 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
       icon: Archive,
       isCollapsible: true,
       items: [
+        {
+          title: "근로계약서",
+          href: "/test/labor-contract",
+          icon: FileText
+        },
         {
           title: "문서",
           href: "/documents",
