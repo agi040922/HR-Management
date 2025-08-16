@@ -337,7 +337,7 @@ export default function ScheduleViewPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">스토어가 없습니다</h2>
           <p className="text-gray-600 mb-4">먼저 스토어를 생성해주세요.</p>
           <Link
-            href="/test/comprehensive/stores"
+            href="/stores"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             스토어 관리로 이동
@@ -355,11 +355,11 @@ export default function ScheduleViewPage() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <Link
-                href="/test/comprehensive/templates"
+                href="/schedule"
                 className="flex items-center text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
-                템플릿 관리로 돌아가기
+                스케줄 관리로 돌아가기
               </Link>
             </div>
             <button

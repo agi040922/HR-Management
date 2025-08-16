@@ -75,6 +75,7 @@ export default function StoresPage() {
     }
   }
 
+  // 스토어 생성
   const handleCreateStore = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
@@ -111,6 +112,7 @@ export default function StoresPage() {
     }
   }
 
+  // 스토어 수정
   const handleUpdateStore = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingStore) return
@@ -143,6 +145,7 @@ export default function StoresPage() {
     }
   }
 
+  // 스토어 삭제
   const handleDeleteStore = async (storeId: number) => {
     if (!confirm('정말로 이 스토어를 삭제하시겠습니까?')) return
 
@@ -166,6 +169,7 @@ export default function StoresPage() {
     }
   }
 
+  // 스토어 수정 시작 버튼
   const startEdit = (store: StoreData) => {
     setEditingStore(store)
     setFormData({
@@ -175,6 +179,7 @@ export default function StoresPage() {
     setShowCreateForm(false)
   }
 
+  // 스토어 수정 취소 버튼
   const cancelEdit = () => {
     setEditingStore(null)
     setShowCreateForm(false)

@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator" 
 import { 
   Home,
   Plus,
@@ -25,8 +26,41 @@ import {
   Building2,
   Calendar,
   Calculator,
-  TrendingUp
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  DollarSign,
+  Archive,
+  AlertTriangle
 } from "lucide-react"
+
+// 디자인 시스템 색상 상수
+const DESIGN_COLORS = {
+  primary: {
+    main: '#1A73E8',
+    light: '#4285F4',
+    dark: '#1557B0',
+    text: '#FFFFFF',
+    hover: '#185ABC'
+  },
+  accent: {
+    orange: '#FF6B35',
+    orangeHover: '#E55A2B'
+  },
+  text: {
+    primary: '#202124',
+    secondary: '#5F6368',
+    muted: '#9AA0A6'
+  },
+  background: {
+    hover: '#F8F9FA',
+    selected: '#E8F0FE',
+    border: '#E0E0E0'
+  }
+}
 
 interface SidebarItem {
   title: string
@@ -37,44 +71,40 @@ interface SidebarItem {
 }
 
 interface SidebarSection {
+  title?: string
+  icon?: React.ComponentType<{ className?: string }>
   items: SidebarItem[]
+  isCollapsible?: boolean
 }
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
+    '근무관리': true,
+    '급여대장': true,
+    '문서관리': true
+  })
 
   const mainSections: SidebarSection[] = [
-    {
-      items: [
-        {
-          title: "빠른 생성",
-          href: "/quick-create",
-          icon: Plus,
-          isActive: true
-        }
-      ]
-    },
     {
       items: [
         {
           title: "대시보드",
           href: "/components/dashboard",
           icon: LayoutDashboard
-        },
+        }
+      ]
+    },
+    {
+      title: "근무관리",
+      icon: Clock,
+      isCollapsible: true,
+      items: [
         {
           title: "스케줄 관리",
-          href: "/schedule",
+          href: "/schedule/view",
           icon: Calendar
-        },
-        {
-          title: "급여 계산",
-          href: "/payroll",
-          icon: Calculator
-        },
-        {
-          title: "임금 최적화",
-          href: "/optimization",
-          icon: TrendingUp
         },
         {
           title: "직원 관리",
@@ -82,19 +112,36 @@ export function Sidebar() {
           icon: Users
         },
         {
+          title: "팀 관리",
+          href: "/team",
+          icon: UserCheck
+        },
+        {
+          title: "예외사항 관리",
+          href: "/schedule/exceptions",
+          icon: AlertTriangle
+        }
+      ]
+    },
+    {
+      title: "급여대장",
+      icon: DollarSign,
+      isCollapsible: true,
+      items: [
+        {
+          title: "급여 계산",
+          href: "/payroll",
+          icon: Calculator
+        },
+        {
           title: "급여 분석",
           href: "/analytics",
           icon: BarChart3
         },
         {
-          title: "프로젝트",
-          href: "/projects",
-          icon: FolderOpen
-        },
-        {
-          title: "팀 관리",
-          href: "/team",
-          icon: UserCheck
+          title: "임금 최적화",
+          href: "/optimization",
+          icon: TrendingUp
         }
       ]
     }
@@ -102,6 +149,9 @@ export function Sidebar() {
 
   const documentSections: SidebarSection[] = [
     {
+      title: "문서관리",
+      icon: Archive,
+      isCollapsible: true,
       items: [
         {
           title: "문서",
@@ -154,7 +204,7 @@ export function Sidebar() {
     }
   ]
 
-  const renderSidebarItem = (item: SidebarItem) => {
+  const renderSidebarItem = (item: SidebarItem, isSubItem = false) => {
     const isActive = pathname === item.href || item.isActive
     const Icon = item.icon
 
@@ -163,89 +213,292 @@ export function Sidebar() {
         <Button
           key={item.href}
           asChild
-          className="w-full justify-start h-12 bg-orange-500 hover:bg-orange-600 text-white mb-4"
+          className={cn(
+            "mb-3 transition-all duration-300 font-medium",
+            isCollapsed ? "w-12 h-12 p-0 justify-center" : "w-full justify-start h-10"
+          )}
+          style={{
+            backgroundColor: DESIGN_COLORS.accent.orange,
+            color: DESIGN_COLORS.primary.text,
+            borderRadius: '6px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = DESIGN_COLORS.accent.orangeHover
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = DESIGN_COLORS.accent.orange
+          }}
+          title={isCollapsed ? item.title : undefined}
         >
           <Link href={item.href}>
-            <Icon className="mr-3 h-5 w-5" />
-            {item.title}
+            <Icon className={cn("h-4 w-4", !isCollapsed && "mr-2")} />
+            {!isCollapsed && item.title}
           </Link>
         </Button>
       )
     }
 
     return (
-      <Link
-        key={item.href}
-        href={item.href}
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-          isActive 
-            ? "bg-primary text-primary-foreground" 
-            : "text-muted-foreground"
+      <div key={item.href} className="relative">
+        {/* 연결선 */}
+        {!isCollapsed && isSubItem && (
+          <div 
+            className="absolute left-2 top-0 bottom-0 w-px"
+            style={{ backgroundColor: DESIGN_COLORS.background.border }}
+          />
         )}
-      >
-        <Icon className="h-4 w-4" />
-        {item.title}
-        {item.badge && (
-          <Badge variant="secondary" className="ml-auto">
-            {item.badge}
-          </Badge>
-        )}
-      </Link>
+        
+        <Link
+          href={item.href}
+          className={cn(
+            "flex items-center text-sm font-medium transition-all duration-150 cursor-pointer relative",
+            isCollapsed ? "justify-center px-2 py-2" : isSubItem ? "gap-2 px-2 py-1.5 ml-4" : "gap-2 px-2 py-1.5",
+            isActive 
+              ? "text-white rounded-md" 
+              : "text-gray-600 hover:text-gray-900 rounded-md"
+          )}
+          style={{
+            backgroundColor: isActive ? DESIGN_COLORS.primary.main : 'transparent',
+            borderRadius: '6px',
+            fontSize: '13px'
+          }}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = DESIGN_COLORS.background.hover
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }
+          }}
+          title={isCollapsed ? item.title : undefined}
+        >
+          {/* 하위 항목 연결점 */}
+          {!isCollapsed && isSubItem && (
+            <div 
+              className="absolute left-2 top-1/2 w-2 h-px"
+              style={{ 
+                backgroundColor: DESIGN_COLORS.background.border,
+                transform: 'translateY(-50%)'
+              }}
+            />
+          )}
+          
+          <Icon className={cn("h-4 w-4 flex-shrink-0", isSubItem && !isCollapsed && "ml-2")} />
+          {!isCollapsed && (
+            <>
+              <span className="flex-1">{item.title}</span>
+              {item.badge && (
+                <Badge 
+                  variant="secondary" 
+                  className="ml-auto text-xs"
+                  style={{
+                    backgroundColor: DESIGN_COLORS.background.selected,
+                    color: DESIGN_COLORS.text.secondary,
+                    borderRadius: '10px',
+                    fontSize: '10px',
+                    fontWeight: '500',
+                    height: '16px',
+                    minWidth: '16px'
+                  }}
+                >
+                  {item.badge}
+                </Badge>
+              )}
+            </>
+          )}
+        </Link>
+      </div>
     )
   }
 
+  const toggleSection = (sectionTitle: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle]
+    }))
+  }
+
   const renderSection = (section: SidebarSection, showSeparator = false) => (
-    <div key={Math.random()}>
-      {showSeparator && <Separator className="my-4" />}
-      <div className="space-y-1">
-        {section.items.map(renderSidebarItem)}
-      </div>
+    <div key={section.title || 'main-section'}>
+      {showSeparator && (
+        <div 
+          style={{
+            height: '1px',
+            backgroundColor: DESIGN_COLORS.background.border,
+            margin: '12px 0'
+          }}
+        />
+      )}
+      
+      {/* 섹션 제목 (토글 가능한 경우) */}
+      {section.title && section.isCollapsible && (
+        <button
+          onClick={() => toggleSection(section.title!)}
+          className={cn(
+            "flex items-center w-full px-2 py-1.5 text-left transition-colors duration-150 hover:bg-gray-100 rounded-md mb-1",
+            isCollapsed && "justify-center px-2"
+          )}
+          style={{
+            color: DESIGN_COLORS.text.primary,
+            fontSize: '14px',
+            fontWeight: '600'
+          }}
+          title={isCollapsed ? section.title : undefined}
+        >
+          {!isCollapsed && section.icon && (
+            <section.icon className="h-4 w-4 mr-2 flex-shrink-0" />
+          )}
+          {isCollapsed && section.icon && (
+            <section.icon className="h-4 w-4" />
+          )}
+          {!isCollapsed && (
+            <>
+              <span className="flex-1">{section.title}</span>
+              {expandedSections[section.title] ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </>
+          )}
+        </button>
+      )}
+      
+      {/* 메뉴 아이템들 */}
+      {(!section.isCollapsible || !section.title || expandedSections[section.title]) && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginBottom: '8px' }}>
+          {section.items.map((item, index) => renderSidebarItem(item, section.isCollapsible))}
+        </div>
+      )}
     </div>
   )
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-background">
-      {/* 헤더 */}
-      <div className="flex h-14 items-center border-b px-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <Building2 className="h-6 w-6" />
-          <span>HR 관리 시스템</span>
-        </Link>
+    <div 
+      className="flex flex-col transition-all duration-300"
+      style={{
+        width: isCollapsed ? '72px' : '220px',
+        height: 'calc(100vh - 64px)', // 헤더 높이 64px 제외
+        backgroundColor: '#FFFFFF',
+        borderRight: `1px solid ${DESIGN_COLORS.background.border}`
+      }}
+    >
+      {/* 헤더 영역 */}
+      <div className="flex items-center justify-between p-3">
+        {!isCollapsed && (
+          <span 
+            className="font-semibold"
+            style={{ 
+              color: DESIGN_COLORS.text.primary,
+              fontSize: '16px',
+              fontWeight: '600'
+            }}
+          >
+            인사관리
+          </span>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1 rounded-md transition-colors duration-150 hover:bg-gray-100"
+          style={{
+            color: DESIGN_COLORS.text.secondary
+          }}
+          title={isCollapsed ? "사이드바 펼치기" : "사이드바 접기"}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="flex-1 overflow-auto p-4">
-        <div className="space-y-4">
-          {/* 빠른 생성 버튼 */}
+      <div className="flex-1 overflow-auto" style={{ padding: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* 대시보드 */}
           {mainSections[0] && renderSection(mainSections[0])}
           
-          {/* 메인 네비게이션 */}
-          {mainSections[1] && renderSection(mainSections[1])}
+          {/* 근무관리 */}
+          {mainSections[1] && renderSection(mainSections[1], true)}
           
-          {/* 문서 섹션 */}
+          {/* 급여대장 */}
+          {mainSections[2] && renderSection(mainSections[2], true)}
+          
+          {/* 문서관리 */}
           {documentSections.map((section, index) => 
-            renderSection(section, index === 0)
+            renderSection(section, true)
           )}
         </div>
       </div>
 
       {/* 하단 섹션 */}
-      <div className="border-t p-4">
-        <div className="space-y-1">
-          {bottomSections[0]?.items.map(renderSidebarItem)}
+      <div 
+        style={{
+          borderTop: `1px solid ${DESIGN_COLORS.background.border}`,
+          padding: '12px'
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          {bottomSections[0]?.items.map((item, index) => renderSidebarItem(item, false))}
         </div>
         
         {/* 사용자 정보 */}
-        <Separator className="my-4" />
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+        <div 
+          style={{
+            height: '1px',
+            backgroundColor: DESIGN_COLORS.background.border,
+            margin: '16px 0'
+          }}
+        />
+        <div 
+          className={cn(
+            "flex items-center px-3 py-2",
+            isCollapsed ? "justify-center" : "gap-3"
+          )}
+          style={{ borderRadius: '8px' }}
+        >
+          <div 
+            className="flex items-center justify-center text-sm font-medium"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: DESIGN_COLORS.primary.main,
+              color: DESIGN_COLORS.primary.text,
+              fontSize: '14px',
+              fontWeight: '600'
+            }}
+            title={isCollapsed ? "관리자 (admin@company.com)" : undefined}
+          >
             관
           </div>
-          <div className="flex-1 text-sm">
-            <div className="font-medium">관리자</div>
-            <div className="text-muted-foreground">admin@company.com</div>
-          </div>
+          {!isCollapsed && (
+            <div className="flex-1">
+              <div 
+                className="font-medium"
+                style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: DESIGN_COLORS.text.primary,
+                  lineHeight: '20px'
+                }}
+              >
+                관리자
+              </div>
+              <div 
+                style={{
+                  fontSize: '12px',
+                  color: DESIGN_COLORS.text.muted,
+                  lineHeight: '16px'
+                }}
+              >
+                admin@company.com
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

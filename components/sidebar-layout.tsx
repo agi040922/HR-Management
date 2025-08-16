@@ -1,6 +1,7 @@
 "use client"
 
 import { Sidebar } from "@/components/sidebar"
+import { Header } from "@/components/header"
 
 interface SidebarLayoutProps {
   children: React.ReactNode
@@ -8,11 +9,14 @@ interface SidebarLayoutProps {
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+    <div className="flex flex-col h-screen">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

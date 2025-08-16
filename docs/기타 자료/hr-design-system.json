@@ -1,0 +1,489 @@
+{
+  "name": "HR Management System Design System",
+  "description": "A comprehensive design system for HR management applications, featuring a professional sidebar navigation, dashboard components, and enterprise-grade UI elements. Optimized for productivity and data visualization.",
+  "ai_context": "This JSON defines the visual styles for an HR management system with a focus on professional appearance, data clarity, and efficient navigation. The design emphasizes clean layouts, consistent spacing, and accessible color schemes suitable for business environments. Use this to maintain visual consistency across all HR-related components.",
+  "palette": {
+    "primary": {
+      "main": "#1A73E8",
+      "light": "#4285F4",
+      "dark": "#1557B0",
+      "text": "#FFFFFF",
+      "hover": "#185ABC"
+    },
+    "secondary": {
+      "main": "#F8F9FA",
+      "light": "#FFFFFF",
+      "dark": "#E9ECF0",
+      "text": "#5F6368"
+    },
+    "accent": {
+      "orange": "#FF6B35",
+      "orangeHover": "#E55A2B",
+      "success": "#34A853",
+      "warning": "#FBBC04",
+      "error": "#EA4335"
+    },
+    "text": {
+      "primary": "#202124",
+      "secondary": "#5F6368",
+      "muted": "#9AA0A6",
+      "disabled": "#BDC1C6",
+      "inverse": "#FFFFFF"
+    },
+    "background": {
+      "default": "#FFFFFF",
+      "paper": "#FFFFFF",
+      "sidebar": "#FFFFFF",
+      "hover": "#F8F9FA",
+      "selected": "#E8F0FE",
+      "border": "#E0E0E0"
+    },
+    "status": {
+      "active": "#34A853",
+      "inactive": "#9AA0A6",
+      "pending": "#FBBC04",
+      "urgent": "#EA4335"
+    },
+    "data": {
+      "chart1": "#1A73E8",
+      "chart2": "#34A853",
+      "chart3": "#FBBC04",
+      "chart4": "#EA4335",
+      "chart5": "#9C27B0"
+    }
+  },
+  "typography": {
+    "fontFamily": "'Inter', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
+    "headings": {
+      "h1": {
+        "fontSize": "24px",
+        "fontWeight": "600",
+        "lineHeight": "32px",
+        "letterSpacing": "-0.01em"
+      },
+      "h2": {
+        "fontSize": "20px",
+        "fontWeight": "600",
+        "lineHeight": "28px",
+        "letterSpacing": "-0.01em"
+      },
+      "h3": {
+        "fontSize": "16px",
+        "fontWeight": "600",
+        "lineHeight": "24px"
+      },
+      "h4": {
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "lineHeight": "20px"
+      }
+    },
+    "body": {
+      "large": {
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "24px"
+      },
+      "medium": {
+        "fontSize": "14px",
+        "fontWeight": "500",
+        "lineHeight": "20px"
+      },
+      "small": {
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "lineHeight": "18px"
+      },
+      "caption": {
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "lineHeight": "16px",
+        "color": "palette.text.secondary"
+      }
+    }
+  },
+  "spacing": {
+    "baseUnit": "8px",
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px"
+  },
+  "shape": {
+    "borderRadius": {
+      "none": "0px",
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px",
+      "xl": "16px",
+      "pill": "9999px",
+      "circle": "50%"
+    },
+    "borderWidth": {
+      "thin": "1px",
+      "medium": "2px",
+      "thick": "4px"
+    }
+  },
+  "effects": {
+    "boxShadow": {
+      "none": "none",
+      "subtle": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "small": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+      "medium": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "large": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+    },
+    "transition": {
+      "fast": "150ms ease-in-out",
+      "medium": "300ms ease-in-out",
+      "slow": "500ms ease-in-out"
+    }
+  },
+  "components": {
+    "sidebar": {
+      "description": "Main navigation sidebar with sections for different HR modules",
+      "container": {
+        "width": "256px",
+        "backgroundColor": "palette.background.sidebar",
+        "borderRight": "1px solid palette.background.border",
+        "display": "flex",
+        "flexDirection": "column",
+        "height": "100vh"
+      },
+      "header": {
+        "height": "56px",
+        "padding": "0 spacing.md",
+        "borderBottom": "1px solid palette.background.border",
+        "display": "flex",
+        "alignItems": "center",
+        "gap": "spacing.sm"
+      },
+      "logo": {
+        "iconSize": "24px",
+        "fontSize": "typography.headings.h4.fontSize",
+        "fontWeight": "typography.headings.h4.fontWeight",
+        "color": "palette.text.primary"
+      },
+      "content": {
+        "flex": "1",
+        "overflowY": "auto",
+        "padding": "spacing.md"
+      },
+      "footer": {
+        "borderTop": "1px solid palette.background.border",
+        "padding": "spacing.md"
+      }
+    },
+    "navigationItem": {
+      "description": "Individual navigation menu items",
+      "base": {
+        "display": "flex",
+        "alignItems": "center",
+        "gap": "spacing.sm",
+        "padding": "spacing.sm spacing.sm",
+        "borderRadius": "shape.borderRadius.md",
+        "fontSize": "typography.body.medium.fontSize",
+        "fontWeight": "typography.body.medium.fontWeight",
+        "transition": "effects.transition.fast",
+        "cursor": "pointer"
+      },
+      "default": {
+        "color": "palette.text.secondary",
+        "backgroundColor": "transparent"
+      },
+      "hover": {
+        "backgroundColor": "palette.background.hover",
+        "color": "palette.text.primary"
+      },
+      "active": {
+        "backgroundColor": "palette.primary.main",
+        "color": "palette.primary.text"
+      },
+      "icon": {
+        "size": "16px",
+        "flexShrink": "0"
+      }
+    },
+    "quickActionButton": {
+      "description": "Prominent call-to-action button for quick operations",
+      "style": {
+        "width": "100%",
+        "height": "48px",
+        "backgroundColor": "palette.accent.orange",
+        "color": "palette.text.inverse",
+        "borderRadius": "shape.borderRadius.md",
+        "fontSize": "typography.body.medium.fontSize",
+        "fontWeight": "typography.body.medium.fontWeight",
+        "display": "flex",
+        "alignItems": "center",
+        "justifyContent": "flex-start",
+        "gap": "spacing.sm",
+        "padding": "0 spacing.md",
+        "border": "none",
+        "cursor": "pointer",
+        "transition": "effects.transition.fast",
+        "marginBottom": "spacing.md"
+      },
+      "hover": {
+        "backgroundColor": "palette.accent.orangeHover"
+      },
+      "icon": {
+        "size": "20px"
+      }
+    },
+    "sectionSeparator": {
+      "description": "Visual separator between navigation sections",
+      "style": {
+        "height": "1px",
+        "backgroundColor": "palette.background.border",
+        "margin": "spacing.md 0"
+      }
+    },
+    "userProfile": {
+      "description": "User information display in sidebar footer",
+      "container": {
+        "display": "flex",
+        "alignItems": "center",
+        "gap": "spacing.sm",
+        "padding": "spacing.sm",
+        "borderRadius": "shape.borderRadius.md"
+      },
+      "avatar": {
+        "width": "32px",
+        "height": "32px",
+        "borderRadius": "shape.borderRadius.circle",
+        "backgroundColor": "palette.primary.main",
+        "color": "palette.primary.text",
+        "display": "flex",
+        "alignItems": "center",
+        "justifyContent": "center",
+        "fontSize": "typography.body.small.fontSize",
+        "fontWeight": "typography.headings.h4.fontWeight"
+      },
+      "info": {
+        "flex": "1"
+      },
+      "name": {
+        "fontSize": "typography.body.medium.fontSize",
+        "fontWeight": "typography.body.medium.fontWeight",
+        "color": "palette.text.primary",
+        "lineHeight": "typography.body.medium.lineHeight"
+      },
+      "email": {
+        "fontSize": "typography.body.caption.fontSize",
+        "color": "palette.text.muted",
+        "lineHeight": "typography.body.caption.lineHeight"
+      }
+    },
+    "badge": {
+      "description": "Status indicators and notification badges",
+      "base": {
+        "display": "inline-flex",
+        "alignItems": "center",
+        "justifyContent": "center",
+        "borderRadius": "shape.borderRadius.pill",
+        "fontSize": "typography.body.caption.fontSize",
+        "fontWeight": "typography.headings.h4.fontWeight",
+        "lineHeight": "1",
+        "minWidth": "20px",
+        "height": "20px",
+        "padding": "0 spacing.xs"
+      },
+      "variants": {
+        "default": {
+          "backgroundColor": "palette.secondary.dark",
+          "color": "palette.text.secondary"
+        },
+        "primary": {
+          "backgroundColor": "palette.primary.main",
+          "color": "palette.primary.text"
+        },
+        "success": {
+          "backgroundColor": "palette.status.active",
+          "color": "palette.text.inverse"
+        },
+        "warning": {
+          "backgroundColor": "palette.status.pending",
+          "color": "palette.text.primary"
+        },
+        "error": {
+          "backgroundColor": "palette.status.urgent",
+          "color": "palette.text.inverse"
+        }
+      }
+    },
+    "card": {
+      "description": "Container for dashboard content and data display",
+      "base": {
+        "backgroundColor": "palette.background.paper",
+        "borderRadius": "shape.borderRadius.lg",
+        "boxShadow": "effects.boxShadow.small",
+        "border": "1px solid palette.background.border"
+      },
+      "header": {
+        "padding": "spacing.lg spacing.lg spacing.md spacing.lg",
+        "borderBottom": "1px solid palette.background.border"
+      },
+      "content": {
+        "padding": "spacing.lg"
+      },
+      "title": {
+        "fontSize": "typography.headings.h3.fontSize",
+        "fontWeight": "typography.headings.h3.fontWeight",
+        "color": "palette.text.primary",
+        "marginBottom": "spacing.xs"
+      },
+      "subtitle": {
+        "fontSize": "typography.body.small.fontSize",
+        "color": "palette.text.secondary"
+      }
+    },
+    "dataTable": {
+      "description": "Tables for displaying HR data like employee lists, payroll, etc.",
+      "container": {
+        "width": "100%",
+        "backgroundColor": "palette.background.paper",
+        "borderRadius": "shape.borderRadius.md",
+        "overflow": "hidden",
+        "border": "1px solid palette.background.border"
+      },
+      "header": {
+        "backgroundColor": "palette.secondary.main",
+        "borderBottom": "1px solid palette.background.border"
+      },
+      "headerCell": {
+        "padding": "spacing.sm spacing.md",
+        "fontSize": "typography.body.small.fontSize",
+        "fontWeight": "typography.headings.h4.fontWeight",
+        "color": "palette.text.secondary",
+        "textAlign": "left"
+      },
+      "row": {
+        "borderBottom": "1px solid palette.background.border"
+      },
+      "cell": {
+        "padding": "spacing.sm spacing.md",
+        "fontSize": "typography.body.medium.fontSize",
+        "color": "palette.text.primary"
+      },
+      "rowHover": {
+        "backgroundColor": "palette.background.hover"
+      }
+    },
+    "button": {
+      "description": "Interactive buttons for various actions",
+      "base": {
+        "display": "inline-flex",
+        "alignItems": "center",
+        "justifyContent": "center",
+        "gap": "spacing.xs",
+        "borderRadius": "shape.borderRadius.md",
+        "fontSize": "typography.body.medium.fontSize",
+        "fontWeight": "typography.body.medium.fontWeight",
+        "cursor": "pointer",
+        "transition": "effects.transition.fast",
+        "border": "1px solid transparent"
+      },
+      "sizes": {
+        "small": {
+          "height": "32px",
+          "padding": "0 spacing.sm"
+        },
+        "medium": {
+          "height": "40px",
+          "padding": "0 spacing.md"
+        },
+        "large": {
+          "height": "48px",
+          "padding": "0 spacing.lg"
+        }
+      },
+      "variants": {
+        "primary": {
+          "backgroundColor": "palette.primary.main",
+          "color": "palette.primary.text",
+          "hover": {
+            "backgroundColor": "palette.primary.hover"
+          }
+        },
+        "secondary": {
+          "backgroundColor": "palette.secondary.main",
+          "color": "palette.text.primary",
+          "border": "1px solid palette.background.border",
+          "hover": {
+            "backgroundColor": "palette.secondary.dark"
+          }
+        },
+        "outline": {
+          "backgroundColor": "transparent",
+          "color": "palette.primary.main",
+          "border": "1px solid palette.primary.main",
+          "hover": {
+            "backgroundColor": "palette.primary.main",
+            "color": "palette.primary.text"
+          }
+        }
+      }
+    }
+  },
+  "layouts": {
+    "mainLayout": {
+      "description": "Primary application layout with sidebar and main content area",
+      "container": {
+        "display": "flex",
+        "height": "100vh",
+        "backgroundColor": "palette.background.default"
+      },
+      "sidebar": {
+        "flexShrink": "0"
+      },
+      "main": {
+        "flex": "1",
+        "display": "flex",
+        "flexDirection": "column",
+        "overflow": "hidden"
+      },
+      "content": {
+        "flex": "1",
+        "padding": "spacing.lg",
+        "overflow": "auto"
+      }
+    },
+    "dashboardGrid": {
+      "description": "Grid layout for dashboard cards and widgets",
+      "container": {
+        "display": "grid",
+        "gap": "spacing.lg"
+      },
+      "responsive": {
+        "mobile": {
+          "gridTemplateColumns": "1fr"
+        },
+        "tablet": {
+          "gridTemplateColumns": "repeat(2, 1fr)"
+        },
+        "desktop": {
+          "gridTemplateColumns": "repeat(3, 1fr)"
+        },
+        "wide": {
+          "gridTemplateColumns": "repeat(4, 1fr)"
+        }
+      }
+    }
+  },
+  "breakpoints": {
+    "mobile": "768px",
+    "tablet": "1024px",
+    "desktop": "1280px",
+    "wide": "1536px"
+  },
+  "usage_guidelines": {
+    "color_usage": "Use primary colors for main actions and navigation. Secondary colors for backgrounds and subtle elements. Accent colors sparingly for important status indicators.",
+    "typography_hierarchy": "Maintain clear hierarchy with headings for sections, medium body text for content, and small text for metadata.",
+    "spacing_consistency": "Use the spacing scale consistently. Prefer md (16px) for general padding, lg (24px) for section spacing.",
+    "component_composition": "Combine base components to create complex interfaces. Always maintain the design token values.",
+    "accessibility": "Ensure sufficient color contrast, keyboard navigation support, and screen reader compatibility."
+  }
+}
