@@ -11,7 +11,7 @@ import {
   formatCurrency, 
   calculateMonthlySalary,
   calculateWeeklyWorkHours 
-} from '@/lib/labor-contract-utils';
+} from '@/lib/(labor-contract)/labor-contract-utils';
 
 interface ContractPreviewProps {
   contract: LaborContract;

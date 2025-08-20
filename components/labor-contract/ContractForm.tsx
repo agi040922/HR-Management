@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
 
 import { LaborContract, ValidationError, SalaryType, PaymentMethod } from '@/types/labor-contract';
-import { formatCurrency } from '@/lib/labor-contract-utils';
+import { formatCurrency } from '@/lib/(labor-contract)/labor-contract-utils';
 
 interface ContractFormProps {
   contract: LaborContract;

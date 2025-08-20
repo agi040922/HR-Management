@@ -10,8 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Eye, AlertCircle, Upload, Save, FileDown, HelpCircle } from 'lucide-react';
 
 import { LaborContract, ContractType, CONTRACT_TEMPLATES, ValidationError } from '@/types/labor-contract';
-import { validateLaborContract, createDefaultContract, getContractTitle } from '@/lib/labor-contract-utils';
-import { generateContractPDF, exportContractAsJSON, importContractFromJSON } from '@/lib/pdf-generator';
+import { validateLaborContract, createDefaultContract, getContractTitle } from '@/lib/(labor-contract)/labor-contract-utils';
+import { generateContractPDF, exportContractAsJSON, importContractFromJSON } from '@/lib/(labor-contract)/pdf-generator';
 
 import ContractForm from '@/components/labor-contract/ContractForm';
 import ContractPreview from '@/components/labor-contract/ContractPreview';

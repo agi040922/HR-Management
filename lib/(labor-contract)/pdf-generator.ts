@@ -4,7 +4,7 @@ import {
   formatCurrency, 
   calculateMonthlySalary,
   calculateWeeklyWorkHours 
-} from '@/lib/labor-contract-utils';
+} from '@/lib/(labor-contract)/labor-contract-utils';
 
 /**
  * html2canvas-pro와 jsPDF를 사용한 PDF 생성 함수
