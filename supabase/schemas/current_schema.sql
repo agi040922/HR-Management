@@ -1,7 +1,7 @@
 -- 아르바이트 관리 시스템 현재 스키마 상태
--- 최종 업데이트: 2025-08-14
--- 주요 변경: 스토어 소유권 시스템 추가, 멀티 스토어 지원, RLS 정책 적용
--- 아직은 policy 등 정책이 적용되지 않음
+-- 최종 업데이트: 2025-08-20
+-- 주요 변경: 직원 중심 스케줄 시스템으로 변경, time_slots 구조 개선
+-- 스토어 소유권 시스템 추가, 멀티 스토어 지원, RLS 정책 적용
 
 -- 직원 테이블
 CREATE TABLE employees (
@@ -197,11 +197,12 @@ CREATE INDEX idx_employees_active ON employees(is_active);
 CREATE INDEX idx_payroll_employee_date ON payroll_calculations(employee_id, calculation_date);
 
 -- 주간 스케줄 템플릿 테이블 (멀티 스토어 지원, JSONB 기반)
+-- time_slots 구조: 직원 중심으로 변경됨
 CREATE TABLE weekly_schedule_templates (
   id SERIAL PRIMARY KEY,
   store_id INTEGER NOT NULL REFERENCES public.store_settings(id) ON DELETE CASCADE,
   template_name VARCHAR(100) NOT NULL,
-  schedule_data JSONB NOT NULL DEFAULT '{}', -- 요일별 상세 스케줄 정보
+  schedule_data JSONB NOT NULL DEFAULT '{}', -- 요일별 상세 스케줄 정보 (직원 중심 구조)
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
