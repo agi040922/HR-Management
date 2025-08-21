@@ -1,13 +1,19 @@
 // 직원 및 스케줄 관련 타입 정의
+import { LaborContract } from './labor-contract'
 
 export interface Employee {
   id: number
+  store_id?: number
+  owner_id: string
   name: string
   hourlyWage: number
-  position: string
+  position?: string
   phone?: string
   startDate: string
   isActive: boolean
+  laborContract?: LaborContract | null  // 근로계약서 정보 (JSONB)
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface WorkSchedule {

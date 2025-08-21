@@ -22,7 +22,9 @@ import {
   ChevronDown,
   ChevronRight,
   Eye,
-  HelpCircle
+  HelpCircle,
+  Scroll,
+  FileText
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
@@ -44,7 +46,9 @@ interface EmployeeData {
   hourly_wage: number
   position?: string
   phone?: string
+  start_date: string
   is_active: boolean
+  labor_contract?: any | null
   created_at: string
   updated_at: string
 }
@@ -55,7 +59,9 @@ interface EmployeeFormData {
   hourly_wage: number
   position: string
   phone: string
+  start_date: string
   is_active: boolean
+  labor_contract?: any | null
 }
 
 export default function EmployeesPage() {
@@ -71,13 +77,17 @@ export default function EmployeesPage() {
     hourly_wage: 10030, // 2025년 최저시급
     position: '',
     phone: '',
-    is_active: true
+    start_date: new Date().toISOString().split('T')[0],
+    is_active: true,
+    labor_contract: null
   })
   const [submitting, setSubmitting] = useState(false)
   const [selectedStore, setSelectedStore] = useState<number | 'all'>('all')
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
   const [showHelp, setShowHelp] = useState(false)
+  const [showContractModal, setShowContractModal] = useState(false)
+  const [selectedContract, setSelectedContract] = useState<any | null>(null)
 
   // 데이터 로드
   useEffect(() => {
@@ -232,7 +242,9 @@ export default function EmployeesPage() {
       hourly_wage: employee.hourly_wage,
       position: employee.position || '',
       phone: employee.phone || '',
-      is_active: employee.is_active
+      start_date: employee.start_date || new Date().toISOString().split('T')[0],
+      is_active: employee.is_active,
+      labor_contract: employee.labor_contract || null
     })
     setShowCreateForm(false)
   }
@@ -244,7 +256,9 @@ export default function EmployeesPage() {
       hourly_wage: 10030,
       position: '',
       phone: '',
-      is_active: true
+      start_date: new Date().toISOString().split('T')[0],
+      is_active: true,
+      labor_contract: null
     })
   }
 
@@ -271,6 +285,26 @@ export default function EmployeesPage() {
       newExpanded.add(employeeId)
     }
     setExpandedRows(newExpanded)
+  }
+
+  const handleViewContract = (contract: any) => {
+    setSelectedContract(contract)
+    setShowContractModal(true)
+  }
+
+  const getContractTypeLabel = (contractType: string) => {
+    const types: { [key: string]: string } = {
+      'permanent': '정규직 (기간의 정함이 없는 경우)',
+      'fixed-term': '계약직 (기간의 정함이 있는 경우)',
+      'minor': '연소근로자',
+      'part-time': '단시간근로자',
+      'construction-daily': '건설일용근로자',
+      'foreign-worker': '외국인근로자',
+      'foreign-agriculture': '외국인근로자(농업·축산업·어업)',
+      'foreign-worker-en': '외국인근로자 (영문)',
+      'foreign-agriculture-en': '외국인근로자(농업·축산업·어업) (영문)'
+    }
+    return types[contractType] || '기타'
   }
 
   if (loading || loadingData) {
@@ -473,6 +507,16 @@ export default function EmployeesPage() {
                         placeholder="010-1234-5678"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="start_date">근무 시작일 *</Label>
+                      <Input
+                        id="start_date"
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                        required
+                      />
+                    </div>
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -483,13 +527,33 @@ export default function EmployeesPage() {
                       <Label htmlFor="is_active">활성 상태</Label>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button type="submit" disabled={submitting}>
-                      {submitting ? '처리 중...' : (editingEmployee ? '수정하기' : '등록하기')}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={cancelEdit}>
-                      취소
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="text-sm text-blue-800 mb-2">
+                        💡 <strong>근로계약서와 함께 등록</strong>하고 싶으신가요?
+                      </p>
+                      <p className="text-xs text-blue-600 mb-3">
+                        근로계약서를 작성하면서 직원을 등록하면 법정 서류를 완비할 수 있습니다.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('/test/labor-contract', '_blank')}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      >
+                        근로계약서 작성하기
+                      </Button>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Button type="submit" disabled={submitting}>
+                        {submitting ? '처리 중...' : (editingEmployee ? '수정하기' : '간단 등록')}
+                      </Button>
+                      <Button type="button" variant="outline" onClick={cancelEdit}>
+                        취소
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -543,6 +607,12 @@ export default function EmployeesPage() {
                                 <div className="flex items-center space-x-2">
                                   <Users className="h-4 w-4 text-gray-500" />
                                   <span className="font-medium">{employee.name}</span>
+                                  {employee.labor_contract && (
+                                    <Badge variant="outline" className="text-xs">
+                                      <Scroll className="h-3 w-3 mr-1" />
+                                      계약서
+                                    </Badge>
+                                  )}
                                 </div>
                               </TableCell>
                               <TableCell>
@@ -571,6 +641,17 @@ export default function EmployeesPage() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex space-x-1">
+                                  {employee.labor_contract && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleViewContract(employee.labor_contract)}
+                                      title="근로계약서 보기"
+                                      className="p-1"
+                                    >
+                                      <FileText className="h-4 w-4 text-blue-600" />
+                                    </Button>
+                                  )}
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -620,6 +701,10 @@ export default function EmployeesPage() {
                                         <h4 className="font-medium text-gray-900 mb-2">근무 정보</h4>
                                         <div className="space-y-2 text-sm">
                                           <div className="flex justify-between">
+                                            <span className="text-gray-600">시작일:</span>
+                                            <span>{new Date(employee.start_date).toLocaleDateString('ko-KR')}</span>
+                                          </div>
+                                          <div className="flex justify-between">
                                             <span className="text-gray-600">등록일:</span>
                                             <span>{new Date(employee.created_at).toLocaleDateString('ko-KR')}</span>
                                           </div>
@@ -644,6 +729,38 @@ export default function EmployeesPage() {
                                               <span className="text-gray-600">시간 단위:</span>
                                               <span className="ml-2">{store.time_slot_minutes}분</span>
                                             </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* 근로계약서 정보 */}
+                                    {employee.labor_contract && (
+                                      <div>
+                                        <h4 className="font-medium text-gray-900 mb-2">근로계약서 정보</h4>
+                                        <div className="text-sm text-gray-600 bg-white p-3 rounded border">
+                                          <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                              <span className="text-gray-600">계약 유형:</span>
+                                              <span className="ml-2">{getContractTypeLabel(employee.labor_contract.contractType)}</span>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-600">계약 기간:</span>
+                                              <span className="ml-2">
+                                                {employee.labor_contract.workStartDate} ~ {employee.labor_contract.workEndDate || '정함없음'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <div className="mt-2 flex justify-end">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => handleViewContract(employee.labor_contract)}
+                                              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                            >
+                                              <FileText className="h-4 w-4 mr-1" />
+                                              상세보기
+                                            </Button>
                                           </div>
                                         </div>
                                       </div>
@@ -765,6 +882,168 @@ export default function EmployeesPage() {
           </>
         )}
 
+        {/* 근로계약서 상세보기 모달 */}
+        {showContractModal && selectedContract && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    근로계약서 상세정보
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowContractModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </Button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* 기본 정보 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-gray-900 mb-3">계약 정보</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">계약 유형:</span>
+                          <span className="font-medium">{getContractTypeLabel(selectedContract.contractType)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">계약 시작일:</span>
+                          <span>{selectedContract.workStartDate}</span>
+                        </div>
+                        {selectedContract.workEndDate && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">계약 종료일:</span>
+                            <span>{selectedContract.workEndDate}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">근무지:</span>
+                          <span>{selectedContract.workplace}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">업무 내용:</span>
+                          <span>{selectedContract.jobDescription}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-gray-900 mb-3">근로자 정보</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">성명:</span>
+                          <span className="font-medium">{selectedContract.employee?.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">주소:</span>
+                          <span>{selectedContract.employee?.address}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">연락처:</span>
+                          <span>{selectedContract.employee?.phone}</span>
+                        </div>
+                        {selectedContract.employee?.birthdate && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">생년월일:</span>
+                            <span>{selectedContract.employee.birthdate}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 근로시간 정보 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-900 mb-3">근로시간</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">시업시각:</span>
+                        <span>{selectedContract.workingHours?.startTime}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">종업시각:</span>
+                        <span>{selectedContract.workingHours?.endTime}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">주 근무일수:</span>
+                        <span>{selectedContract.workingHours?.workDaysPerWeek}일</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">주휴일:</span>
+                        <span>{selectedContract.workingHours?.weeklyHoliday}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 임금 정보 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-900 mb-3">임금</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">기본급:</span>
+                        <span className="font-medium">{selectedContract.salary?.basicSalary?.toLocaleString()}원</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">임금 형태:</span>
+                        <span>
+                          {selectedContract.salary?.salaryType === 'monthly' ? '월급' : 
+                           selectedContract.salary?.salaryType === 'daily' ? '일급' : '시급'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">임금지급일:</span>
+                        <span>매월 {selectedContract.salary?.payDate}일</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">지급방법:</span>
+                        <span>
+                          {selectedContract.salary?.paymentMethod === 'direct' ? '직접지급' : '통장입금'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 사업주 정보 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-gray-900 mb-3">사업주 정보</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">사업체명:</span>
+                        <span className="font-medium">{selectedContract.employer?.companyName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">대표자:</span>
+                        <span>{selectedContract.employer?.representative}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">사업장 주소:</span>
+                        <span>{selectedContract.employer?.address}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">전화번호:</span>
+                        <span>{selectedContract.employer?.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <Button
+                    onClick={() => setShowContractModal(false)}
+                    variant="outline"
+                  >
+                    닫기
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

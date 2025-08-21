@@ -14,42 +14,9 @@ CREATE TABLE employees (
   phone VARCHAR(20),
   start_date DATE NOT NULL DEFAULT CURRENT_DATE,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  labor_contract JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 근무 스케줄 테이블
-CREATE TABLE work_schedules (
-  id BIGSERIAL PRIMARY KEY,
-  employee_id BIGINT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-  store_id INTEGER REFERENCES public.store_settings(id) ON DELETE CASCADE,
-  date DATE NOT NULL,
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
-  break_time INTEGER DEFAULT 0,
-  is_overtime BOOLEAN DEFAULT false,
-  is_night_shift BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  CONSTRAINT valid_time_range_night_shift CHECK (start_time != end_time),
-  CONSTRAINT max_work_duration CHECK (
-    CASE 
-      WHEN end_time >= start_time THEN
-        EXTRACT(EPOCH FROM (end_time - start_time)) <= 86400
-      ELSE
-        EXTRACT(EPOCH FROM (end_time + INTERVAL '1 day' - start_time)) <= 86400
-    END
-  ),
-  CONSTRAINT valid_break_time_improved CHECK (
-    break_time >= 0 AND 
-    break_time <= CASE 
-      WHEN end_time >= start_time THEN
-        EXTRACT(EPOCH FROM (end_time - start_time)) / 60 * 0.5
-      ELSE
-        EXTRACT(EPOCH FROM (end_time + INTERVAL '1 day' - start_time)) / 60 * 0.5
-    END
-  ),
-  UNIQUE(employee_id, date, start_time)
 );
 
 -- 가게 설정 테이블 (멀티 스토어 지원)
@@ -195,6 +162,10 @@ CREATE INDEX idx_work_schedules_employee_date ON work_schedules(employee_id, dat
 CREATE INDEX idx_work_schedules_date ON work_schedules(date);
 CREATE INDEX idx_employees_active ON employees(is_active);
 CREATE INDEX idx_payroll_employee_date ON payroll_calculations(employee_id, calculation_date);
+
+-- 근로계약서 관련 인덱스
+CREATE INDEX idx_employees_labor_contract_type ON employees USING GIN ((labor_contract->>'contractType'));
+CREATE INDEX idx_employees_labor_contract_status ON employees USING GIN ((labor_contract->>'status'));
 
 -- 주간 스케줄 템플릿 테이블 (멀티 스토어 지원, JSONB 기반)
 -- time_slots 구조: 직원 중심으로 변경됨
