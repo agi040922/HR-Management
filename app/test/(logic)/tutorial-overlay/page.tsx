@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import Joyride, { CallBackProps, STATUS, EVENTS } from 'react-joyride';
+// import Joyride, { CallBackProps, STATUS, EVENTS } from 'react-joyride';
 import { 
   Users, 
   Calculator, 
@@ -83,18 +83,18 @@ export default function TutorialOverlayPage() {
     }
   ];
 
-  // 튜토리얼 콜백 처리
-  const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, type, index } = data;
+  // 튜토리얼 콜백 처리 (React 19 호환성 문제로 임시 비활성화)
+  // const handleJoyrideCallback = (data: CallBackProps) => {
+  //   const { status, type, index } = data;
 
-    if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type)) {
-      setStepIndex(index + (type === EVENTS.STEP_AFTER ? 1 : 0));
-    } else if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      setRunTutorial(false);
-      setStepIndex(0);
-      localStorage.setItem('tutorial-completed', 'true');
-    }
-  };
+  //   if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type)) {
+  //     setStepIndex(index + (type === EVENTS.STEP_AFTER ? 1 : 0));
+  //   } else if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+  //     setRunTutorial(false);
+  //     setStepIndex(0);
+  //     localStorage.setItem('tutorial-completed', 'true');
+  //   }
+  // };
 
   // 튜토리얼 시작
   const startTutorial = () => {
@@ -147,7 +147,8 @@ export default function TutorialOverlayPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      {/* Joyride 컴포넌트 */}
+      {/* Joyride 컴포넌트 (React 19 호환성 문제로 임시 비활성화) */}
+      {/* 
       <Joyride
         steps={steps}
         run={runTutorial}
@@ -212,8 +213,29 @@ export default function TutorialOverlayPage() {
           disableAnimation: true,
         }}
       />
+      */}
 
       <div className="space-y-8">
+        {/* React 19 호환성 안내 */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                튜토리얼 기능 임시 비활성화
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p>React 19 업그레이드로 인해 튜토리얼 오버레이 기능이 일시적으로 비활성화되었습니다. 
+                아래 모의 데이터로 시스템의 주요 기능들을 미리 체험해보실 수 있습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* 헤더 및 튜토리얼 컨트롤 */}
         <div className="flex justify-between items-center tutorial-welcome">
           <div>
@@ -223,23 +245,25 @@ export default function TutorialOverlayPage() {
           
           <div className="flex items-center gap-3 tutorial-settings">
             <Button
-              onClick={startTutorial}
+              disabled
               className="flex items-center gap-2"
               variant="outline"
+              title="React 19 호환성 문제로 임시 비활성화"
             >
               <Play className="w-4 h-4" />
-              튜토리얼 시작
+              튜토리얼 시작 (비활성화)
             </Button>
             <Button
-              onClick={resetTutorial}
+              disabled
               variant="outline"
               className="flex items-center gap-2"
+              title="React 19 호환성 문제로 임시 비활성화"
             >
               <RotateCcw className="w-4 h-4" />
-              다시보기
+              다시보기 (비활성화)
             </Button>
             <Button variant="ghost" size="icon">
-              <Settings className="w-5 h-5" />
+              <HelpCircle className="w-5 h-5" />
             </Button>
           </div>
         </div>
