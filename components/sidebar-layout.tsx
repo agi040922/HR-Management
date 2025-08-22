@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
+import Settings from "@/components/Settings"
 
 interface SidebarLayoutProps {
   children: React.ReactNode
@@ -14,6 +15,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -69,6 +71,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           isMobile={isMobile}
           onMobileClose={() => setIsMobileMenuOpen(false)}
           onCollapse={setIsCollapsed}
+          onSettingsOpen={() => setIsSettingsOpen(true)}
         />
       </div>
 
@@ -84,6 +87,12 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           {children}
         </div>
       </main>
+      
+      {/* Settings 모달 - 전체 화면에서 독립적으로 표시 */}
+      <Settings 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   )
 }

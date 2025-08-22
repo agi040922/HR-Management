@@ -24,11 +24,15 @@ import {
   Eye,
   HelpCircle,
   Scroll,
-  FileText
+  FileText,
+  PlayCircle
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { useTutorial } from '@/components/TutorialProvider'
+import { employeesTutorialSteps } from '@/lib/tutorial/tutorial-steps'
+import { getTutorialTheme, TutorialStorage } from '@/lib/tutorial/tutorial-utils'
 
 interface StoreData {
   id: number
@@ -66,6 +70,7 @@ interface EmployeeFormData {
 
 export default function EmployeesPage() {
   const { user, loading } = useAuth()
+  const { startTutorial } = useTutorial()
   const [stores, setStores] = useState<StoreData[]>([])
   const [employees, setEmployees] = useState<EmployeeData[]>([])
   const [loadingData, setLoadingData] = useState(true)
@@ -307,6 +312,13 @@ export default function EmployeesPage() {
     return types[contractType] || '기타'
   }
 
+  // 튜토리얼 시작
+  const handleStartTutorial = () => {
+    const theme = getTutorialTheme()
+    startTutorial(employeesTutorialSteps, theme)
+    TutorialStorage.setTutorialCompleted('employees', false) // 다시 볼 수 있도록
+  }
+
   if (loading || loadingData) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -326,7 +338,7 @@ export default function EmployeesPage() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2" data-tutorial="employees-header">
                   직원 관리
                   <button
                     onClick={() => setShowHelp(!showHelp)}
@@ -352,9 +364,20 @@ export default function EmployeesPage() {
                 )}
               </div>
               
+              {/* 튜토리얼 시작 버튼 */}
+              <Button
+                onClick={handleStartTutorial}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                <PlayCircle className="h-4 w-4" />
+                튜토리얼 시작
+              </Button>
+              
               {/* 스토어 선택 */}
               {stores.length > 0 && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" data-tutorial="store-selector">
                   <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
                     스토어:
                   </label>
@@ -381,7 +404,7 @@ export default function EmployeesPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 border rounded-lg p-1">
+              <div className="flex items-center gap-1 border rounded-lg p-1" data-tutorial="view-mode-toggle">
                 <Button
                   variant={viewMode === 'table' ? 'default' : 'ghost'}
                   size="sm"
@@ -404,6 +427,7 @@ export default function EmployeesPage() {
                 }}
                 className="flex items-center gap-2"
                 disabled={stores.length === 0}
+                data-tutorial="new-employee-button"
               >
                 <Plus className="h-4 w-4" />
                 새 직원 등록
@@ -439,7 +463,7 @@ export default function EmployeesPage() {
 
             {/* 직원 생성/수정 폼 */}
             {(showCreateForm || editingEmployee) && (
-              <div className="bg-white rounded border shadow-sm p-6 mb-6">
+              <div className="bg-white rounded border shadow-sm p-6 mb-6" data-tutorial="employee-form">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">
                     {editingEmployee ? '직원 정보 수정' : '새 직원 등록'}
@@ -528,7 +552,7 @@ export default function EmployeesPage() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="bg-blue-50 p-3 rounded-lg">
+                    <div className="bg-blue-50 p-3 rounded-lg" data-tutorial="contract-info">
                       <p className="text-sm text-blue-800 mb-2">
                         💡 <strong>근로계약서와 함께 등록</strong>하고 싶으신가요?
                       </p>
@@ -560,7 +584,7 @@ export default function EmployeesPage() {
             )}
 
             {/* 직원 목록 */}
-            <div className="bg-white rounded border shadow-sm p-6">
+            <div className="bg-white rounded border shadow-sm p-6" data-tutorial="employee-list">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">
                   직원 목록 ({filteredEmployees.length}명)

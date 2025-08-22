@@ -1,6 +1,112 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Driver.js 커스텀 스타일링 */
+.tutorial-popover-custom {
+  font-family: inherit;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e5e7eb;
+}
+
+.tutorial-popover-custom .driver-popover-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.tutorial-popover-custom .driver-popover-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4b5563;
+  margin-bottom: 16px;
+}
+
+.tutorial-popover-custom .driver-popover-progress-text {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.tutorial-popover-custom .driver-popover-footer {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 16px;
+}
+
+.tutorial-popover-custom .driver-popover-navigation-btns {
+  gap: 8px;
+}
+
+.tutorial-popover-custom button {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.tutorial-popover-custom .driver-popover-next-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.tutorial-popover-custom .driver-popover-next-btn:hover {
+  background-color: #2563eb;
+}
+
+.tutorial-popover-custom .driver-popover-prev-btn {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.tutorial-popover-custom .driver-popover-prev-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.tutorial-popover-custom .driver-popover-close-btn {
+  background: transparent;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 4px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.tutorial-popover-custom .driver-popover-close-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* 화살표 색상 조정 */
+.tutorial-popover-custom.driver-popover-arrow-side-left .driver-popover-arrow {
+  border-left-color: white;
+}
+
+.tutorial-popover-custom.driver-popover-arrow-side-right .driver-popover-arrow {
+  border-right-color: white;
+}
+
+.tutorial-popover-custom.driver-popover-arrow-side-top .driver-popover-arrow {
+  border-top-color: white;
+}
+
+.tutorial-popover-custom.driver-popover-arrow-side-bottom .driver-popover-arrow {
+  border-bottom-color: white;
+}
+
+/* 오버레이 애니메이션 */
+.driver-overlay {
+  transition: all 0.3s ease;
+}
+
+.driver-highlighted-element {
+  transition: all 0.3s ease;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -177,6 +283,117 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+}
+
+/* Driver.js 커스텀 스타일 */
+.tutorial-popover-custom {
+  background: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #e5e7eb !important;
+  font-family: var(--font-sans) !important;
+  max-width: 400px !important;
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+}
+
+.tutorial-popover-custom .driver-popover-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  margin-bottom: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.tutorial-popover-custom .driver-popover-description {
+  color: #4b5563 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  margin-bottom: 16px !important;
+}
+
+.tutorial-popover-custom .driver-popover-progress-text {
+  font-size: 12px !important;
+  color: #6b7280 !important;
+  margin-bottom: 12px !important;
+  text-align: center !important;
+}
+
+.tutorial-popover-custom .driver-popover-navigation-btns {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+}
+
+.tutorial-popover-custom .driver-popover-next-btn,
+.tutorial-popover-custom .driver-popover-prev-btn {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease !important;
+  pointer-events: auto !important;
+  z-index: 10000 !important;
+  position: relative !important;
+}
+
+.tutorial-popover-custom .driver-popover-next-btn {
+  background: #3b82f6 !important;
+  color: white !important;
+  border-color: #3b82f6 !important;
+}
+
+.tutorial-popover-custom .driver-popover-close-btn {
+  display: none !important;
+}
+
+.tutorial-popover-custom .driver-popover-next-btn:hover {
+  background: #2563eb !important;
+}
+
+.tutorial-popover-custom .driver-popover-prev-btn:hover {
+  background: #e5e7eb !important;
+}
+
+.tutorial-popover-custom .driver-popover-arrow {
+  border-color: white !important;
+}
+
+/* 오버레이 커스터마이징 */
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.7) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 10000 !important;
+}
+
+/* 하이라이트된 요소 스타일 */
+.driver-highlighted-element {
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3) !important;
+  position: relative !important;
+  z-index: 10001 !important;
+}
+
+/* 튜토리얼 진행 중 body 스크롤 방지 */
+body.driver-active {
+  overflow: hidden !important;
+}
+
+/* 첫 번째 단계에서 body가 하이라이트될 때 스타일 */
+body.driver-highlighted-element {
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 @layer base {

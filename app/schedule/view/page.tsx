@@ -5,10 +5,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { 
   Calendar, 
   Save,
-  HelpCircle
+  HelpCircle,
+  PlayCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTutorial } from '@/components/TutorialProvider';
+import { scheduleTutorialSteps } from '@/lib/tutorial/tutorial-steps';
+import { getTutorialTheme, TutorialStorage } from '@/lib/tutorial/tutorial-utils';
 
 // 모듈화된 컴포넌트 및 유틸리티 import
 import ScheduleTable from '@/components/schedule/ScheduleTable';
@@ -34,6 +38,7 @@ import {
 
 export default function ScheduleViewPage() {
   const { user } = useAuth();
+  const { startTutorial } = useTutorial();
   
   // 상태 관리
   const [stores, setStores] = useState<StoreSettings[]>([]);
@@ -254,6 +259,13 @@ export default function ScheduleViewPage() {
     }
   };
 
+  // 튜토리얼 시작
+  const handleStartTutorial = () => {
+    const theme = getTutorialTheme();
+    startTutorial(scheduleTutorialSteps, theme);
+    TutorialStorage.setTutorialCompleted('schedule', false); // 다시 볼 수 있도록
+  };
+
   // 초기 데이터 로드
   useEffect(() => {
     if (user) {
@@ -357,7 +369,7 @@ export default function ScheduleViewPage() {
         <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900">스케줄 관리</h1>
+              <h1 className="text-2xl font-bold text-gray-900" data-tutorial="schedule-header">스케줄 관리</h1>
               <div className="relative">
                 <button
                   onClick={() => setShowHelp(!showHelp)}
@@ -390,10 +402,19 @@ export default function ScheduleViewPage() {
                   </>
                 )}
               </div>
+              
+              {/* 튜토리얼 시작 버튼 */}
+              <button
+                onClick={handleStartTutorial}
+                className="flex items-center gap-2 px-3 py-2 text-blue-600 border border-blue-300 rounded-sm hover:bg-blue-50 transition-colors text-sm"
+              >
+                <PlayCircle className="h-4 w-4" />
+                튜토리얼 시작
+              </button>
             </div>
             
             {/* 컨트롤 영역 */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4" data-tutorial="store-template-selectors">
               {/* 스토어 선택 */}
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
@@ -453,6 +474,7 @@ export default function ScheduleViewPage() {
               <button
                 onClick={handleSaveSchedule}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
+                data-tutorial="save-button"
               >
                 <Save className="h-4 w-4 mr-2" />
                 저장
@@ -470,39 +492,41 @@ export default function ScheduleViewPage() {
 
         {/* 스케줄 표 */}
         {selectedStore && selectedTemplate && timeSlots.length > 0 && (
-          <div className="bg-white rounded border shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">주간 스케줄</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowStoreHoursModal(true)}
-                  className="px-3 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-700 transition-colors text-sm"
-                >
-                  영업시간 설정
-                </button>
-                <button
-                  onClick={handleResetTemplate}
-                  className="px-3 py-2 bg-gray-600 text-white rounded-sm hover:bg-gray-700 transition-colors text-sm"
-                >
-                  초기화
-                </button>
-                <button
-                  onClick={() => setShowEmployeeModal(true)}
-                  className="px-3 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors text-sm"
-                >
-                  직원 추가
-                </button>
+                      <div className="bg-white rounded border shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">주간 스케줄</h2>
+                <div className="flex items-center gap-2" data-tutorial="schedule-actions">
+                  <button
+                    onClick={() => setShowStoreHoursModal(true)}
+                    className="px-3 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-700 transition-colors text-sm"
+                  >
+                    영업시간 설정
+                  </button>
+                  <button
+                    onClick={handleResetTemplate}
+                    className="px-3 py-2 bg-gray-600 text-white rounded-sm hover:bg-gray-700 transition-colors text-sm"
+                  >
+                    초기화
+                  </button>
+                  <button
+                    onClick={() => setShowEmployeeModal(true)}
+                    className="px-3 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors text-sm"
+                  >
+                    직원 추가
+                  </button>
+                </div>
               </div>
-            </div>
               
-            <ScheduleTable
-              scheduleData={scheduleData}
-              timeSlots={timeSlots}
-              employees={employees}
-              days={days}
-              dayNames={dayNames}
-              onEmployeeClick={handleEmployeeClick}
-            />
+                          <div data-tutorial="schedule-table">
+                <ScheduleTable
+                  scheduleData={scheduleData}
+                  timeSlots={timeSlots}
+                  employees={employees}
+                  days={days}
+                  dayNames={dayNames}
+                  onEmployeeClick={handleEmployeeClick}
+                />
+              </div>
           </div>
         )}
       </div>

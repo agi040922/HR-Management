@@ -1,30 +1,60 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import Joyride, { CallBackProps, STATUS, EVENTS } from 'react-joyride';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
 
-interface TutorialStep {
-  target: string;
-  content: string;
-  title?: string;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
-  disableBeacon?: boolean;
-  hideCloseButton?: boolean;
-  hideFooter?: boolean;
+export interface TutorialStep {
+  element?: string | Element;
+  popover?: {
+    title?: string;
+    description: string;
+    side?: 'top' | 'right' | 'bottom' | 'left';
+    align?: 'start' | 'center' | 'end';
+    showButtons?: ('next' | 'previous' | 'close')[];
+    nextBtnText?: string;
+    prevBtnText?: string;
+    doneBtnText?: string;
+    showProgress?: boolean;
+    progressText?: string;
+    popoverClass?: string;
+    onNextClick?: () => void;
+    onPrevClick?: () => void;
+    onCloseClick?: () => void;
+  };
+  onHighlighted?: () => void;
+  onDeselected?: () => void;
+}
+
+export interface TutorialConfig {
   showProgress?: boolean;
-  showSkipButton?: boolean;
-  styles?: any;
+  progressText?: string;
+  animate?: boolean;
+  overlayColor?: string;
+  overlayOpacity?: number;
+  popoverClass?: string;
+  stagePadding?: number;
+  allowClose?: boolean;
+  allowKeyboardControl?: boolean;
+  showButtons?: ('next' | 'previous' | 'close')[];
+  nextBtnText?: string;
+  prevBtnText?: string;
+  doneBtnText?: string;
 }
 
 interface TutorialContextType {
   isRunning: boolean;
-  steps: TutorialStep[];
-  stepIndex: number;
-  startTutorial: (steps: TutorialStep[]) => void;
+  currentStepIndex: number;
+  totalSteps: number;
+  startTutorial: (steps: TutorialStep[], config?: TutorialConfig) => void;
   stopTutorial: () => void;
   nextStep: () => void;
   prevStep: () => void;
-  setSteps: (steps: TutorialStep[]) => void;
+  goToStep: (index: number) => void;
+  highlightElement: (step: TutorialStep) => void;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+  driverInstance: any | null;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -43,127 +73,245 @@ interface TutorialProviderProps {
 
 export const TutorialProvider: React.FC<TutorialProviderProps> = ({ children }) => {
   const [isRunning, setIsRunning] = useState(false);
-  const [steps, setSteps] = useState<TutorialStep[]>([]);
-  const [stepIndex, setStepIndex] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const driverRef = useRef<any>(null);
+  const stepsRef = useRef<TutorialStep[]>([]);
 
-  const startTutorial = (newSteps: TutorialStep[]) => {
-    setSteps(newSteps);
-    setStepIndex(0);
+  const isFirstStep = currentStepIndex === 0;
+  const isLastStep = currentStepIndex === totalSteps - 1;
+
+  // Driver.js 기본 설정
+  const defaultConfig: TutorialConfig = {
+    showProgress: true,
+    progressText: '{{current}} / {{total}} 단계',
+    animate: true,
+    overlayColor: 'rgba(0, 0, 0, 0.6)',
+    overlayOpacity: 0.6,
+    popoverClass: 'tutorial-popover-custom',
+    stagePadding: 4,
+    allowClose: true,
+    allowKeyboardControl: true,
+    showButtons: ['next', 'previous', 'close'],
+    nextBtnText: '다음',
+    prevBtnText: '이전',
+    doneBtnText: '완료'
+  };
+
+  const startTutorial = (steps: TutorialStep[], config?: TutorialConfig) => {
+    const mergedConfig = { ...defaultConfig, ...config };
+    stepsRef.current = steps;
+    setTotalSteps(steps.length);
+    setCurrentStepIndex(0);
     setIsRunning(true);
+
+    // Driver.js 인스턴스 생성
+    const driverInstance = driver({
+      showProgress: mergedConfig.showProgress,
+      progressText: `단계 {{current}} / {{total}}`,
+      animate: mergedConfig.animate,
+      overlayColor: mergedConfig.overlayColor,
+      overlayOpacity: mergedConfig.overlayOpacity,
+      popoverClass: mergedConfig.popoverClass,
+      stagePadding: mergedConfig.stagePadding,
+      allowClose: mergedConfig.allowClose,
+      allowKeyboardControl: mergedConfig.allowKeyboardControl,
+      nextBtnText: mergedConfig.nextBtnText,
+      prevBtnText: mergedConfig.prevBtnText,
+      doneBtnText: mergedConfig.doneBtnText,
+      smoothScroll: true,
+      disableActiveInteraction: false,
+      
+      // 글로벌 콜백들
+      onHighlightStarted: (element, step, { driver }) => {
+        const stepIndex = driver.getActiveIndex();
+        if (stepIndex !== undefined) {
+          setCurrentStepIndex(stepIndex);
+          
+          // 커스텀 onHighlighted 콜백 실행
+          const currentStep = stepsRef.current[stepIndex];
+          if (currentStep?.onHighlighted) {
+            currentStep.onHighlighted();
+          }
+        }
+      },
+      
+      onDeselected: (element, step, { driver }) => {
+        const stepIndex = driver.getActiveIndex();
+        if (stepIndex !== undefined) {
+          // 커스텀 onDeselected 콜백 실행
+          const currentStep = stepsRef.current[stepIndex];
+          if (currentStep?.onDeselected) {
+            currentStep.onDeselected();
+          }
+        }
+      },
+      
+      onDestroyed: () => {
+        setIsRunning(false);
+        setCurrentStepIndex(0);
+        driverRef.current = null;
+      },
+      
+      // 글로벌 네비게이션 콜백들 - 기본 동작 포함
+      onNextClick: (element, step, { driver }) => {
+        const stepIndex = driver.getActiveIndex();
+        
+        if (stepIndex !== undefined) {
+          const currentStep = stepsRef.current[stepIndex];
+          
+          // 커스텀 onNextClick이 있으면 실행
+          if (currentStep?.popover?.onNextClick) {
+            currentStep.popover.onNextClick();
+            return; // 커스텀 핸들러가 있으면 기본 동작 건너뛰기
+          }
+          
+          // 마지막 단계가 아니면 다음으로 이동
+          if (stepIndex < stepsRef.current.length - 1) {
+            driver.moveNext();
+          } else {
+            // 마지막 단계면 완료
+            driver.destroy();
+          }
+        }
+      },
+      
+      onPrevClick: (element, step, { driver }) => {
+        const stepIndex = driver.getActiveIndex();
+        
+        if (stepIndex !== undefined) {
+          const currentStep = stepsRef.current[stepIndex];
+          
+          // 커스텀 onPrevClick이 있으면 실행
+          if (currentStep?.popover?.onPrevClick) {
+            currentStep.popover.onPrevClick();
+            return; // 커스텀 핸들러가 있으면 기본 동작 건너뛰기
+          }
+          
+          // 이전 단계로 이동
+          if (stepIndex > 0) {
+            driver.movePrevious();
+          }
+        }
+      },
+      
+      onCloseClick: (element, step, { driver }) => {
+        const stepIndex = driver.getActiveIndex();
+        
+        if (stepIndex !== undefined) {
+          const currentStep = stepsRef.current[stepIndex];
+          
+          // 커스텀 onCloseClick이 있으면 실행
+          if (currentStep?.popover?.onCloseClick) {
+            currentStep.popover.onCloseClick();
+            return; // 커스텀 핸들러가 있으면 기본 동작 건너뛰기
+          }
+        }
+        
+        // 튜토리얼 종료
+        driver.destroy();
+      },
+      
+      steps: steps.map((step, index) => ({
+        element: step.element,
+        popover: {
+          title: step.popover?.title,
+          description: step.popover?.description || '',
+          side: step.popover?.side || 'bottom',
+          align: step.popover?.align || 'center',
+          showButtons: step.popover?.showButtons || mergedConfig.showButtons,
+          nextBtnText: step.popover?.nextBtnText || (index === steps.length - 1 ? mergedConfig.doneBtnText : mergedConfig.nextBtnText),
+          prevBtnText: step.popover?.prevBtnText || mergedConfig.prevBtnText,
+        },
+        onHighlightStarted: step.onHighlighted,
+        onDeselected: step.onDeselected,
+      }))
+    });
+
+    driverRef.current = driverInstance;
+    driverInstance.drive();
   };
 
   const stopTutorial = () => {
+    if (driverRef.current) {
+      driverRef.current.destroy();
+    }
     setIsRunning(false);
-    setStepIndex(0);
+    setCurrentStepIndex(0);
+    driverRef.current = null;
   };
 
   const nextStep = () => {
-    if (stepIndex < steps.length - 1) {
-      setStepIndex(prev => prev + 1);
-    } else {
-      stopTutorial();
+    if (driverRef.current) {
+      const currentStepIdx = driverRef.current.getActiveIndex();
+      if (currentStepIdx !== undefined && currentStepIdx < totalSteps - 1) {
+        driverRef.current.moveNext();
+      } else {
+        // 마지막 단계면 완료
+        driverRef.current.destroy();
+      }
     }
   };
 
   const prevStep = () => {
-    if (stepIndex > 0) {
-      setStepIndex(prev => prev - 1);
+    if (driverRef.current) {
+      const currentStepIdx = driverRef.current.getActiveIndex();
+      if (currentStepIdx !== undefined && currentStepIdx > 0) {
+        driverRef.current.movePrevious();
+      }
     }
   };
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, type, index } = data;
-
-    if ([EVENTS.STEP_AFTER, EVENTS.TARGET_NOT_FOUND].includes(type)) {
-      setStepIndex(index + (type === EVENTS.STEP_AFTER ? 1 : 0));
-    } else if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      stopTutorial();
+  const goToStep = (index: number) => {
+    if (driverRef.current && index >= 0 && index < totalSteps) {
+      driverRef.current.moveTo(index);
+      setCurrentStepIndex(index);
     }
   };
 
-  // 커스텀 스타일
-  const joyrideStyles = {
-    options: {
-      primaryColor: '#3b82f6',
-      backgroundColor: '#ffffff',
-      overlayColor: 'rgba(0, 0, 0, 0.5)',
-      spotlightShadow: '0 0 15px rgba(0, 0, 0, 0.5)',
-      beaconSize: 36,
-      zIndex: 10000,
-    },
-    tooltip: {
-      fontSize: 16,
-      padding: 20,
-      borderRadius: 8,
-    },
-    tooltipContainer: {
-      textAlign: 'left' as const,
-    },
-    tooltipTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 10,
-    },
-    tooltipContent: {
-      fontSize: 14,
-      lineHeight: 1.5,
-    },
-    buttonNext: {
-      backgroundColor: '#3b82f6',
-      fontSize: 14,
-      padding: '8px 16px',
-      borderRadius: 6,
-    },
-    buttonBack: {
-      color: '#6b7280',
-      fontSize: 14,
-      padding: '8px 16px',
-    },
-    buttonSkip: {
-      color: '#9ca3af',
-      fontSize: 14,
-    },
-    buttonClose: {
-      color: '#6b7280',
-      fontSize: 18,
-      padding: 4,
-    },
+  const highlightElement = (step: TutorialStep) => {
+    const driverInstance = driver({
+      ...defaultConfig,
+      showButtons: ['close'],
+    });
+
+    driverInstance.highlight({
+      element: step.element,
+      popover: {
+        ...step.popover,
+        showButtons: ['close'],
+        popoverClass: step.popover?.popoverClass || defaultConfig.popoverClass,
+      }
+    });
   };
+
+  // 컴포넌트 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      if (driverRef.current) {
+        driverRef.current.destroy();
+      }
+    };
+  }, []);
 
   return (
     <TutorialContext.Provider
       value={{
         isRunning,
-        steps,
-        stepIndex,
+        currentStepIndex,
+        totalSteps,
         startTutorial,
         stopTutorial,
         nextStep,
         prevStep,
-        setSteps,
+        goToStep,
+        highlightElement,
+        isFirstStep,
+        isLastStep,
+        driverInstance: driverRef.current,
       }}
     >
       {children}
-      <Joyride
-        steps={steps}
-        run={isRunning}
-        stepIndex={stepIndex}
-        callback={handleJoyrideCallback}
-        continuous={true}
-        showProgress={true}
-        showSkipButton={true}
-        styles={joyrideStyles}
-        locale={{
-          back: '이전',
-          close: '닫기',
-          last: '완료',
-          next: '다음',
-          skip: '건너뛰기',
-        }}
-        floaterProps={{
-          disableAnimation: true,
-        }}
-      />
     </TutorialContext.Provider>
   );
 };

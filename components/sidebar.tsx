@@ -6,7 +6,7 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator" 
+import { Separator } from "@/components/ui/separator"
 import { 
   Home,
   Plus,
@@ -56,9 +56,10 @@ const DESIGN_COLORS = {
     muted: '#9AA0A6'
   },
   background: {
-    hover: '#F8F9FA',
+    main: '#F8FBFF', // 매우 연한 파란색 배경
+    hover: '#E6F3FF',
     selected: '#E8F0FE',
-    border: '#E0E0E0'
+    border: '#D1E7FF' // 파란색 계열 테두리
   }
 }
 
@@ -68,6 +69,7 @@ interface SidebarItem {
   icon: React.ComponentType<{ className?: string }>
   badge?: string
   isActive?: boolean
+  isSettings?: boolean
 }
 
 interface SidebarSection {
@@ -81,9 +83,10 @@ interface SidebarProps {
   isMobile?: boolean
   onMobileClose?: () => void
   onCollapse?: (isCollapsed: boolean) => void
+  onSettingsOpen?: () => void
 }
 
-export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: SidebarProps) {
+export function Sidebar({ isMobile = false, onMobileClose, onCollapse, onSettingsOpen }: SidebarProps) {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
@@ -198,8 +201,9 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
       items: [
         {
           title: "설정",
-          href: "/settings",
-          icon: Settings
+          href: "#settings",
+          icon: Settings,
+          isSettings: true
         },
         {
           title: "도움말",
@@ -225,6 +229,58 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
   const renderSidebarItem = (item: SidebarItem, isSubItem = false) => {
     const isActive = pathname === item.href || item.isActive
     const Icon = item.icon
+
+    // 설정 버튼인 경우 클릭 이벤트 처리
+    if (item.isSettings) {
+      return (
+        <div key={item.href} className="relative">
+          <button
+            onClick={() => onSettingsOpen?.()}
+            className={cn(
+              "flex items-center text-sm font-medium transition-all duration-150 cursor-pointer relative w-full",
+              isCollapsed ? "justify-center px-2 py-2" : "gap-2 px-2 py-1.5",
+              "text-gray-600 hover:text-gray-900 rounded-md"
+            )}
+            style={{
+              backgroundColor: 'transparent',
+              borderRadius: '6px',
+              fontSize: '13px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = DESIGN_COLORS.background.hover
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            title={isCollapsed ? item.title : undefined}
+          >
+            <Icon className="h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && (
+              <>
+                <span className="flex-1">{item.title}</span>
+                {item.badge && (
+                  <Badge 
+                    variant="secondary" 
+                    className="ml-auto text-xs"
+                    style={{
+                      backgroundColor: DESIGN_COLORS.background.selected,
+                      color: DESIGN_COLORS.text.secondary,
+                      borderRadius: '10px',
+                      fontSize: '10px',
+                      fontWeight: '500',
+                      height: '16px',
+                      minWidth: '16px'
+                    }}
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
+              </>
+            )}
+          </button>
+        </div>
+      )
+    }
 
     if (item.title === "빠른 생성") {
       return (
@@ -274,7 +330,8 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
           onClick={() => handleLinkClick(item.href)}
           className={cn(
             "flex items-center text-sm font-medium transition-all duration-150 cursor-pointer relative",
-            isCollapsed ? "justify-center px-2 py-2" : isSubItem ? "gap-2 px-2 py-1.5 ml-4" : "gap-2 px-2 py-1.5",
+            isCollapsed ? "justify-center px-2 py-2" : "gap-2 px-2 py-1.5",
+            isSubItem && !isCollapsed && "ml-4",
             isActive 
               ? "text-white rounded-md" 
               : "text-gray-600 hover:text-gray-900 rounded-md"
@@ -307,7 +364,7 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
             />
           )}
           
-          <Icon className={cn("h-4 w-4 flex-shrink-0", isSubItem && !isCollapsed && "ml-2")} />
+          <Icon className="h-4 w-4 flex-shrink-0" />
           {!isCollapsed && (
             <>
               <span className="flex-1">{item.title}</span>
@@ -403,7 +460,7 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse }: Sidebar
       style={{
         width: isCollapsed && !isMobile ? '72px' : '220px',
         height: '100vh',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: DESIGN_COLORS.background.main,
         borderRight: `1px solid ${DESIGN_COLORS.background.border}`,
         zIndex: 45
       }}

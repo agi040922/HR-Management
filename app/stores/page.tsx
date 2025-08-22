@@ -6,10 +6,14 @@ import {
   Plus, 
   HelpCircle,
   ChevronDown,
-  Settings
+  Settings,
+  PlayCircle
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
+import { useTutorial } from '@/components/TutorialProvider'
+import { storesTutorialSteps } from '@/lib/tutorial/tutorial-steps'
+import { getTutorialTheme, TutorialStorage } from '@/lib/tutorial/tutorial-utils'
 
 // 모듈화된 컴포넌트 및 API import
 import StoreDataTable from '@/components/stores/StoreDataTable'
@@ -33,6 +37,7 @@ type FilterOption = 'all' | 'has_templates' | 'has_employees' | 'active_only'
 export default function StoresPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const { startTutorial } = useTutorial()
   
   // 상태 관리
   const [stores, setStores] = useState<StoreWithDetails[]>([])
@@ -135,6 +140,13 @@ export default function StoresPage() {
     setEditingStore(null)
   }
 
+  // 튜토리얼 시작
+  const handleStartTutorial = () => {
+    const theme = getTutorialTheme()
+    startTutorial(storesTutorialSteps, theme)
+    TutorialStorage.setTutorialCompleted('stores', false) // 다시 볼 수 있도록
+  }
+
   // 필터링 및 정렬
   const filteredAndSortedStores = stores
     .filter(store => {
@@ -187,7 +199,7 @@ export default function StoresPage() {
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">스토어 관리</h1>
+          <h1 className="text-2xl font-bold text-gray-900" data-tutorial="stores-header">스토어 관리</h1>
           <div className="group relative">
             <HelpCircle className="h-5 w-5 text-gray-400 cursor-help" />
             <div className="absolute left-0 top-6 invisible group-hover:visible bg-black text-white text-sm rounded px-2 py-1 whitespace-nowrap z-10">
@@ -195,8 +207,19 @@ export default function StoresPage() {
             </div>
           </div>
           
+          {/* 튜토리얼 시작 버튼 */}
+          <Button
+            onClick={handleStartTutorial}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+          >
+            <PlayCircle className="h-4 w-4" />
+            튜토리얼 시작
+          </Button>
+          
           {/* 필터 및 정렬 드롭다운 */}
-          <div className="flex gap-2 ml-4">
+          <div className="flex gap-2 ml-4" data-tutorial="store-filters">
             <div className="relative">
               <select 
                 value={sortBy} 
@@ -229,6 +252,7 @@ export default function StoresPage() {
         <Button 
           onClick={() => setShowFormModal(true)}
           className="flex items-center gap-2"
+          data-tutorial="new-store-button"
         >
           <Plus className="h-4 w-4" />
           새 스토어
@@ -236,14 +260,16 @@ export default function StoresPage() {
       </div>
 
       {/* 스토어 데이터 테이블 */}
-      <StoreDataTable
-        stores={filteredAndSortedStores}
-        onEditStore={handleEditStore}
-        onDeleteStore={handleDeleteStore}
-        onViewSchedule={handleViewSchedule}
-        onLoadTemplates={handleLoadTemplates}
-        onLoadEmployees={handleLoadEmployees}
-      />
+      <div data-tutorial="store-table">
+        <StoreDataTable
+          stores={filteredAndSortedStores}
+          onEditStore={handleEditStore}
+          onDeleteStore={handleDeleteStore}
+          onViewSchedule={handleViewSchedule}
+          onLoadTemplates={handleLoadTemplates}
+          onLoadEmployees={handleLoadEmployees}
+        />
+      </div>
 
 
       {/* 빈 상태 */}
