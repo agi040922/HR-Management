@@ -2,25 +2,26 @@ export interface Employee {
   id: number
   name: string
   position: string
-  hourlyWage: number
+  hourly_wage: number
   store_id: number
-  user_id: string
+  owner_id: string
   is_active: boolean
 }
 
 export interface Store {
   id: number
   store_name: string
-  address: string
-  user_id: string
-  is_active: boolean
+  open_time: string
+  close_time: string
+  time_slot_minutes: number
+  owner_id: string
 }
 
 export interface WorkSchedule {
   id: number
   employee_id: number
   store_id: number
-  user_id: string
+  owner_id: string
   date: string
   start_time: string
   end_time: string
@@ -32,7 +33,7 @@ export interface WeeklyTemplate {
   id: number
   template_name: string
   store_id: number
-  user_id: string
+  owner_id: string
   is_active: boolean
 }
 

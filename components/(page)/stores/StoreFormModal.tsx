@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { StoreWithDetails } from '@/lib/api/stores-api';
+import { StoreWithDetails } from '@/lib/api/(page)/stores/stores-api';
 
 interface StoreFormModalProps {
   isOpen: boolean;

@@ -16,8 +16,8 @@ import { storesTutorialSteps } from '@/lib/tutorial/tutorial-steps'
 import { getTutorialTheme, TutorialStorage } from '@/lib/tutorial/tutorial-utils'
 
 // 모듈화된 컴포넌트 및 API import
-import StoreDataTable from '@/components/stores/StoreDataTable'
-import StoreFormModal, { StoreFormData } from '@/components/stores/StoreFormModal'
+import StoreDataTable from '@/components/(page)/stores/StoreDataTable'
+import StoreFormModal, { StoreFormData } from '@/components/(page)/stores/StoreFormModal'
 import {
   getStoresWithDetails,
   getStoreTemplates,
@@ -27,7 +27,7 @@ import {
   StoreWithDetails,
   StoreTemplate,
   StoreEmployee
-} from '@/lib/api/stores-api'
+} from '@/lib/api/(page)/stores/stores-api'
 import { supabase } from '@/lib/supabase'
 
 // 필터 및 정렬 타입

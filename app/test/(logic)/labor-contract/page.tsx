@@ -12,12 +12,12 @@ import { Download, Eye, AlertCircle, Upload, Save, FileDown, HelpCircle } from '
 import { LaborContract, ContractType, CONTRACT_TEMPLATES, ValidationError } from '@/types/labor-contract';
 import { validateLaborContract, createDefaultContract, getContractTitle } from '@/lib/(labor-contract)/labor-contract-utils';
 import { generateContractPDF, exportContractAsJSON, importContractFromJSON } from '@/lib/(labor-contract)/pdf-generator';
-import { getStoresWithDetails, StoreWithDetails, getStoreTemplates, StoreTemplate } from '@/lib/api/stores-api';
+import { getStoresWithDetails, StoreWithDetails, getStoreTemplates, StoreTemplate } from '@/lib/api/(page)/stores/stores-api';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
-import ContractForm from '@/components/labor-contract/ContractForm';
-import ContractPreview from '@/components/labor-contract/ContractPreview';
+import ContractForm from '@/components/(page)/labor-contract/ContractForm';
+import ContractPreview from '@/components/(page)/labor-contract/ContractPreview';
 
 export default function LaborContractPage() {
   const { user, loading } = useAuth();

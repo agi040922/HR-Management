@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { PayrollAPI } from '@/lib/api/payroll-api'
+import { PayrollAPI } from '@/lib/api/(page)/payroll/payroll-api'
 import { PayrollCalculator, DateUtils } from '@/lib/utils/payroll-calculator'
 import { 
   Store, 
@@ -21,6 +21,9 @@ export function usePayrollData() {
   const [schedules, setSchedules] = useState<WorkSchedule[]>([])
   const [templates, setTemplates] = useState<WeeklyTemplate[]>([])
   
+  // 튜토리얼
+  const [tutorialStep, setTutorialStep] = useState<number>(0)
+
   // 선택된 스토어 및 템플릿
   const [selectedStores, setSelectedStores] = useState<Set<number>>(new Set())
   const [storeTemplates, setStoreTemplates] = useState<Map<number, WeeklyTemplate>>(new Map())

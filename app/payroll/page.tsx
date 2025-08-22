@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { usePayrollData } from '@/hooks/usePayrollData'
-import { PayrollHeader } from '@/components/payroll/PayrollHeader'
-import { PayrollFiltersComponent } from '@/components/payroll/PayrollFilters'
-import { StoreSelector } from '@/components/payroll/StoreSelector'
-import { PayrollStatistics } from '@/components/payroll/PayrollStatistics'
-import { PayrollTable } from '@/components/payroll/PayrollTable'
+import { PayrollHeader } from '@/components/(page)/payroll/PayrollHeader'
+import { PayrollFiltersComponent } from '@/components/(page)/payroll/PayrollFilters'
+import { StoreSelector } from '@/components/(page)/payroll/StoreSelector'
+import { PayrollStatistics } from '@/components/(page)/payroll/PayrollStatistics'
+import { PayrollTable } from '@/components/(page)/payroll/PayrollTable'
 import { AlertTriangle } from 'lucide-react'
 
 export default function PayrollPage() {

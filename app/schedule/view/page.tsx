@@ -15,9 +15,9 @@ import { scheduleTutorialSteps } from '@/lib/tutorial/tutorial-steps';
 import { getTutorialTheme, TutorialStorage } from '@/lib/tutorial/tutorial-utils';
 
 // 모듈화된 컴포넌트 및 유틸리티 import
-import ScheduleTable from '@/components/schedule/ScheduleTable';
-import EmployeeModal from '@/components/schedule/EmployeeModal';
-import EmployeeTooltip from '@/components/schedule/EmployeeTooltip';
+import ScheduleTable from '@/components/(page)/schedule/ScheduleTable';
+import EmployeeModal from '@/components/(page)/schedule/EmployeeModal';
+import EmployeeTooltip from '@/components/(page)/schedule/EmployeeTooltip';
 import { 
   Employee, 
   StoreSettings, 
@@ -27,14 +27,14 @@ import {
   getSlotEmployees,
   calculateWeeklyWorkHours,
   createDefaultScheduleData
-} from '@/lib/schedule/scheduleUtils';
+} from '@/lib/api/(page)/schedule/view/scheduleUtils';
 import {
   loadStores,
   loadTemplates,
   loadEmployees,
   createDefaultTemplate,
   saveSchedule
-} from '@/lib/schedule/scheduleApi';
+} from '@/lib/api/(page)/schedule/view/scheduleApi';
 
 export default function ScheduleViewPage() {
   const { user } = useAuth();

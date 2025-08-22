@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Sidebar } from "@/components/sidebar"
-import { Header } from "@/components/header"
+import { Sidebar } from "@/components/(laytout)/sidebar"
+import { Header } from "@/components/(laytout)/header"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import Settings from "@/components/Settings"

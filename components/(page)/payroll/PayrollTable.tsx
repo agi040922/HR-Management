@@ -64,7 +64,7 @@ export function PayrollTable({ storeData, expandedRows, onToggleRow }: PayrollTa
                       {data.employee.position}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-center">{data.employee.hourlyWage.toLocaleString()}원</TableCell>
+                  <TableCell className="text-center">{data.employee.hourly_wage.toLocaleString()}원</TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <Clock className="h-3 w-3 text-blue-500" />

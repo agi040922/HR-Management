@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { StoreWithDetails, StoreTemplate, StoreEmployee } from '@/lib/api/stores-api';
+import { StoreWithDetails, StoreTemplate, StoreEmployee } from '@/lib/api/(page)/stores/stores-api';
 
 interface StoreDataTableProps {
   stores: StoreWithDetails[];

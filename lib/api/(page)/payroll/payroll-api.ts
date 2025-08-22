@@ -7,10 +7,9 @@ export class PayrollAPI {
    */
   static async getStores(userId: string): Promise<Store[]> {
     const { data, error } = await supabase
-      .from('stores')
+      .from('store_settings')
       .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true)
+      .eq('owner_id', userId)
       .order('store_name')
 
     if (error) throw new Error(`스토어 조회 실패: ${error.message}`)
@@ -24,7 +23,7 @@ export class PayrollAPI {
     const { data, error } = await supabase
       .from('employees')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .eq('is_active', true)
       .order('name')
 
@@ -41,9 +40,9 @@ export class PayrollAPI {
     endDate: string
   ): Promise<WorkSchedule[]> {
     const { data, error } = await supabase
-      .from('work_schedules')
+      .from('work_schedule_templates')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .gte('date', startDate)
       .lte('date', endDate)
       .order('date')
@@ -57,9 +56,9 @@ export class PayrollAPI {
    */
   static async getWeeklyTemplates(userId: string): Promise<WeeklyTemplate[]> {
     const { data, error } = await supabase
-      .from('weekly_templates')
+      .from('weekly_schedule_templates')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .order('template_name')
 
     if (error) throw new Error(`템플릿 조회 실패: ${error.message}`)
@@ -71,9 +70,9 @@ export class PayrollAPI {
    */
   static async getStoreTemplates(userId: string, storeId: number): Promise<WeeklyTemplate[]> {
     const { data, error } = await supabase
-      .from('weekly_templates')
+      .from('weekly_schedules_templates')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .eq('store_id', storeId)
       .order('template_name')
 
