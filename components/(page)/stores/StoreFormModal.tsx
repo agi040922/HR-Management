@@ -16,8 +16,6 @@ interface StoreFormModalProps {
 
 export interface StoreFormData {
   store_name: string;
-  open_time: string;
-  close_time: string;
   time_slot_minutes: number;
 }
 
@@ -29,8 +27,6 @@ export default function StoreFormModal({
 }: StoreFormModalProps) {
   const [formData, setFormData] = useState<StoreFormData>({
     store_name: '',
-    open_time: '09:00',
-    close_time: '18:00',
     time_slot_minutes: 30
   });
   const [loading, setLoading] = useState(false);
@@ -40,15 +36,11 @@ export default function StoreFormModal({
     if (editingStore) {
       setFormData({
         store_name: editingStore.store_name || '',
-        open_time: editingStore.open_time,
-        close_time: editingStore.close_time,
         time_slot_minutes: editingStore.time_slot_minutes
       });
     } else {
       setFormData({
         store_name: '',
-        open_time: '09:00',
-        close_time: '18:00',
         time_slot_minutes: 30
       });
     }
@@ -84,7 +76,7 @@ export default function StoreFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b">
@@ -115,31 +107,6 @@ export default function StoreFormModal({
             />
           </div>
 
-          {/* 운영 시간 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="open_time">오픈 시간</Label>
-              <Input
-                id="open_time"
-                type="time"
-                value={formData.open_time}
-                onChange={(e) => handleInputChange('open_time', e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="close_time">마감 시간</Label>
-              <Input
-                id="close_time"
-                type="time"
-                value={formData.close_time}
-                onChange={(e) => handleInputChange('close_time', e.target.value)}
-                required
-                className="mt-1"
-              />
-            </div>
-          </div>
 
           {/* 시간 단위 */}
           <div>

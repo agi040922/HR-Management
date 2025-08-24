@@ -6,8 +6,6 @@ export interface StoreWithDetails {
   id: number;
   owner_id: string;
   store_name: string;
-  open_time: string;
-  close_time: string;
   time_slot_minutes: number;
   created_at: string;
   updated_at: string;
@@ -121,11 +119,49 @@ export async function getStoreEmployees(storeId: number): Promise<StoreEmployee[
 }
 
 /**
+ * 새 스토어 생성
+ */
+export async function createStore(
+  userId: string,
+  storeData: Pick<StoreWithDetails, 'store_name' | 'time_slot_minutes'>
+): Promise<StoreWithDetails> {
+  try {
+    const { data, error } = await supabase
+      .from('store_settings')
+      .insert({
+        owner_id: userId,
+        store_name: storeData.store_name,
+        time_slot_minutes: storeData.time_slot_minutes,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('스토어 생성 오류:', error);
+      throw new Error(`스토어 생성 실패: ${error.message}`);
+    }
+
+    // 생성된 스토어에 기본 통계 추가
+    return {
+      ...data,
+      templates_count: 0,
+      employees_count: 0,
+      active_employees_count: 0
+    };
+  } catch (error) {
+    console.error('스토어 생성 중 예외:', error);
+    throw error;
+  }
+}
+
+/**
  * 스토어 기본 정보 업데이트
  */
 export async function updateStoreSettings(
   storeId: number, 
-  updates: Partial<Pick<StoreWithDetails, 'store_name' | 'open_time' | 'close_time' | 'time_slot_minutes'>>
+  updates: Partial<Pick<StoreWithDetails, 'store_name' | 'time_slot_minutes'>>
 ): Promise<void> {
   try {
     const { error } = await supabase
