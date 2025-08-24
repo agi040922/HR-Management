@@ -20,8 +20,8 @@ import {
 } from '@/lib/(payroll-contract)/payroll-utils';
 import { generatePayrollPDF } from '@/lib/(payroll-contract)/payroll-pdf-generator';
 
-import PayrollForm from '@/components/payroll-statement/PayrollForm';
-import PayrollPreview from '@/components/payroll-statement/PayrollPreview';
+import PayrollForm from '@/components/(page)/test/payroll-statement/PayrollForm';
+import PayrollPreview from '@/components/(page)/test/payroll-statement/PayrollPreview';
 
 export default function PayrollStatementPage() {
   const [statement, setStatement] = useState<PayrollStatement>(createDefaultPayrollStatement());

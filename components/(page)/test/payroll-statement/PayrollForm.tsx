@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -123,11 +122,9 @@ export default function PayrollForm({
   return (
     <div className="space-y-6">
       {/* 회사 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">회사 정보</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">회사 정보</h2>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="company-name">회사명 *</Label>
@@ -200,15 +197,13 @@ export default function PayrollForm({
               </p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 직원 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">직원 정보</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">직원 정보</h2>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="employee-name">직원명 *</Label>
@@ -273,15 +268,13 @@ export default function PayrollForm({
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 급여 기간 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">급여 기간</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">급여 기간</h2>
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="start-date">시작일 *</Label>
@@ -334,19 +327,19 @@ export default function PayrollForm({
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 지급 내역 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">지급 내역</CardTitle>
+      <div className="space-y-4">
+        <div className="flex flex-row items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">지급 내역</h2>
           <Button onClick={addPaymentItem} size="sm" variant="outline">
             <Plus className="h-4 w-4 mr-1" />
             항목 추가
           </Button>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4">
           {statement.paymentItems.map((item, index) => (
             <div key={item.id} className="flex items-center gap-3 p-3 border rounded-lg">
               <div className="flex-1">
@@ -391,13 +384,13 @@ export default function PayrollForm({
               {formatCurrency(statement.paymentItems.reduce((sum, item) => sum + item.amount, 0))}
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* 공제 내역 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">공제 내역</CardTitle>
+      <div className="space-y-4">
+        <div className="flex flex-row items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">공제 내역</h2>
           <div className="flex gap-2">
             <Button onClick={onAutoCalculate} size="sm" variant="outline">
               <Calculator className="h-4 w-4 mr-1" />
@@ -408,8 +401,8 @@ export default function PayrollForm({
               항목 추가
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        </div>
+        <div className="space-y-4">
           {statement.deductionItems.map((item, index) => (
             <div key={item.id} className="flex items-center gap-3 p-3 border rounded-lg">
               <div className="flex-1">
@@ -455,8 +448,8 @@ export default function PayrollForm({
               {formatCurrency(statement.deductionItems.reduce((sum, item) => sum + item.amount, 0))}
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

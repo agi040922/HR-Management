@@ -168,9 +168,14 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse, onSetting
           icon: FileText
         },
         {
-          title: "문서",
-          href: "/documents",
-          icon: FileText
+          title: "급여 명세서",
+          href: "/test/payroll-statement",
+          icon: FileSpreadsheet
+        },
+        {
+          title: "문서 관리",
+          href: "/test/document",
+          icon: FileText  
         },
         {
           title: "데이터 라이브러리",
@@ -181,11 +186,6 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse, onSetting
           title: "보고서",
           href: "/reports",
           icon: ClipboardList
-        },
-        {
-          title: "급여 명세서",
-          href: "/payroll",
-          icon: FileSpreadsheet
         },
         {
           title: "더보기",

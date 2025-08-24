@@ -176,29 +176,52 @@ export function Header() {
           </span>
         </Button>
 
-        {/* 사용자 프로필 */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
-          asChild
-        >
-          <Link href="/profiles">
-            <div 
-              className="flex items-center justify-center rounded-full"
-              style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: DESIGN_COLORS.primary.main,
-                color: DESIGN_COLORS.primary.text,
-                fontSize: '14px',
-                fontWeight: '600'
-              }}
-            >
-              {getAvatarInitial()}
-            </div>
-            <div className="text-left">
+        {/* 사용자 프로필 또는 로그인 버튼 */}
+        {user ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+            asChild
+          >
+            <Link href="/profiles">
               <div 
+                className="flex items-center justify-center rounded-full"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  backgroundColor: DESIGN_COLORS.primary.main,
+                  color: DESIGN_COLORS.primary.text,
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                {getAvatarInitial()}
+              </div>
+              <div className="text-left">
+                <div 
+                  className="text-sm font-medium"
+                  style={{
+                    color: DESIGN_COLORS.text.primary,
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  {getDisplayName()}
+                </div>
+              </div>
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+            asChild
+          >
+            <Link href="/login">
+              <User className="h-5 w-5" style={{ color: DESIGN_COLORS.text.secondary }} />
+              <span 
                 className="text-sm font-medium"
                 style={{
                   color: DESIGN_COLORS.text.primary,
@@ -206,11 +229,11 @@ export function Header() {
                   fontWeight: '500'
                 }}
               >
-                {getDisplayName()}
-              </div>
-            </div>
-          </Link>
-        </Button>
+                로그인
+              </span>
+            </Link>
+          </Button>
+        )}
       </div>
     </header>
   )

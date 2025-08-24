@@ -176,23 +176,65 @@ export default function ExceptionWizard({
               <div className="text-center py-8">
                 <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">해당 날짜에 근무 예정이 없습니다.</p>
+                <p className="text-xs text-gray-500 mt-2">
+                  선택한 직원이 이 날짜에 배정된 근무 시간이 없습니다.
+                </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="font-medium text-gray-900 mb-3">
-                  {workingSlots[0].dayName} 근무 시간대 ({workingSlots.length}개)
+                  {workingSlots[0].dayName} 근무 시간
                 </div>
                 {workingSlots.map((slot, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="font-medium">{slot.timeSlot}</span>
+                  <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                        <span className="font-semibold text-blue-900">{slot.timeSlot}</span>
+                      </div>
+                      <div className="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">
+                        개별 근무 시간
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      함께 근무: {slot.employees.map(emp => emp.name).join(', ')}
-                    </div>
+                    
+                    {slot.employees.length > 1 && (
+                      <div className="text-sm text-gray-600 mt-2">
+                        <span className="font-medium">같은 시간대 근무자:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {slot.employees.map((emp, empIndex) => (
+                            <span 
+                              key={empIndex}
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                emp.id === wizardData.employee_id 
+                                  ? 'bg-blue-100 text-blue-800 font-medium' 
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}
+                            >
+                              {emp.name}
+                              {emp.id === wizardData.employee_id && ' (선택됨)'}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {slot.employees.length === 1 && (
+                      <div className="text-sm text-gray-600 mt-2">
+                        <span className="text-blue-700 font-medium">단독 근무</span>
+                      </div>
+                    )}
                   </div>
                 ))}
+                
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="text-yellow-600 mr-2">💡</div>
+                    <div className="text-sm text-yellow-800">
+                      <p className="font-medium mb-1">새로운 템플릿 구조</p>
+                      <p>각 직원별로 개별 근무 시간이 설정되어 있습니다. 예외사항은 이 개별 시간에 적용됩니다.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

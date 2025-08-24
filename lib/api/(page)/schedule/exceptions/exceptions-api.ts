@@ -190,55 +190,51 @@ export function getEmployeeWorkingSlots(
   const dayKey = days[targetDay === 0 ? 6 : targetDay - 1]
   const dayData = template.schedule_data[dayKey]
   
-  if (!dayData?.is_open || !dayData.time_slots) return []
+  if (!dayData?.is_open || !dayData.employees) return []
 
   const workingSlots: WorkingSlot[] = []
   
-  Object.entries(dayData.time_slots).forEach(([timeSlot, employeeIds]: [string, any]) => {
-    if (Array.isArray(employeeIds) && employeeIds.includes(employeeId)) {
-      const slotEmployees = employees.filter(emp => employeeIds.includes(emp.id))
-      workingSlots.push({
-        day: dayKey,
-        dayName: dayNames[days.indexOf(dayKey)],
-        timeSlot,
-        employees: slotEmployees
-      })
-    }
-  })
+  // 새로운 구조: employees 객체에서 직원별 개별 시간 확인
+  const employeeSchedule = dayData.employees[employeeId.toString()]
+  
+  if (employeeSchedule && employeeSchedule.start_time && employeeSchedule.end_time) {
+    // 해당 직원의 근무 시간이 있는 경우
+    const timeSlot = `${employeeSchedule.start_time}-${employeeSchedule.end_time}`
+    
+    // 같은 시간대에 근무하는 다른 직원들 찾기
+    const sameTimeEmployees = employees.filter(emp => {
+      const empSchedule = dayData.employees[emp.id.toString()]
+      return empSchedule && 
+             empSchedule.start_time === employeeSchedule.start_time &&
+             empSchedule.end_time === employeeSchedule.end_time
+    })
+    
+    workingSlots.push({
+      day: dayKey,
+      dayName: dayNames[days.indexOf(dayKey)],
+      timeSlot,
+      employees: sameTimeEmployees
+    })
+  }
 
-  return workingSlots.sort((a, b) => a.timeSlot.localeCompare(b.timeSlot))
+  return workingSlots
 }
 
 export function buildExceptionDataFromWizard(
   wizardData: ExceptionWizardData,
   storeId: number
 ): Omit<ExceptionData, 'id' | 'created_at' | 'updated_at'> {
-  const exceptionData = {
-    original_schedule: wizardData.working_slots,
-    selected_time_slots: wizardData.selected_slots,
-    reason: wizardData.notes || null
-  }
-  
-  const affectedSlots = wizardData.working_slots
-    .filter(slot => wizardData.selected_slots.includes(slot.timeSlot))
-    .map(slot => ({
-      day: slot.day,
-      time_slot: slot.timeSlot,
-      original_employees: slot.employees.map(emp => emp.id),
-      exception_type: wizardData.exception_type
-    }))
-
   return {
     store_id: storeId,
     employee_id: wizardData.employee_id!,
     template_id: wizardData.template_id!,
     date: wizardData.date,
     exception_type: wizardData.exception_type!,
-    start_time: wizardData.exception_type !== 'CANCEL' ? wizardData.start_time : null,
-    end_time: wizardData.exception_type !== 'CANCEL' ? wizardData.end_time : null,
-    notes: wizardData.notes || null,
-    exception_data: exceptionData,
-    affected_slots: affectedSlots
+    start_time: wizardData.exception_type !== 'CANCEL' ? wizardData.start_time : undefined,
+    end_time: wizardData.exception_type !== 'CANCEL' ? wizardData.end_time : undefined,
+    notes: wizardData.notes || undefined,
+    exception_data: {}, // 빈 객체로 유지 (DB 스키마 호환성)
+    affected_slots: [] // 빈 배열로 유지 (DB 스키마 호환성)
   }
 }
 
