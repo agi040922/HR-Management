@@ -103,7 +103,7 @@ export default function ExceptionList({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {exception.exception_type !== 'CANCEL' && exception.start_time && exception.end_time ? (
+                    {exception.start_time && exception.end_time ? (
                       <span>{exception.start_time} - {exception.end_time}</span>
                     ) : (
                       <span className="text-gray-400">-</span>
@@ -246,7 +246,7 @@ export default function ExceptionList({
                     </div>
                   )}
 
-                  {exception.exception_type !== 'CANCEL' && exception.start_time && exception.end_time && (
+                  {exception.start_time && exception.end_time && (
                     <div className="flex items-center space-x-2 mt-1">
                       <Clock className="h-3 w-3" />
                       <span>{exception.start_time} - {exception.end_time}</span>

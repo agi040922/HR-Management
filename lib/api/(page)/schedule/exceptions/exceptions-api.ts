@@ -224,17 +224,30 @@ export function buildExceptionDataFromWizard(
   wizardData: ExceptionWizardData,
   storeId: number
 ): Omit<ExceptionData, 'id' | 'created_at' | 'updated_at'> {
+  // CANCEL 타입일 때 선택된 시간대에서 시작/종료 시간 추출
+  let startTime = wizardData.start_time || undefined
+  let endTime = wizardData.end_time || undefined
+  
+  if (wizardData.exception_type === 'CANCEL' && wizardData.selected_slots.length > 0) {
+    const slots = wizardData.selected_slots.map(slot => {
+      const [start, end] = slot.split('-')
+      return { start, end }
+    })
+    startTime = slots[0]?.start
+    endTime = slots[slots.length - 1]?.end
+  }
+
   return {
     store_id: storeId,
     employee_id: wizardData.employee_id!,
     template_id: wizardData.template_id!,
     date: wizardData.date,
     exception_type: wizardData.exception_type!,
-    start_time: wizardData.start_time || undefined,
-    end_time: wizardData.end_time || undefined,
+    start_time: startTime,
+    end_time: endTime,
     notes: wizardData.notes || undefined,
-    exception_data: {}, // 빈 객체로 유지 (DB 스키마 호환성)
-    affected_slots: [] // 빈 배열로 유지 (DB 스키마 호환성)
+    exception_data: {},
+    affected_slots: []
   }
 }
 

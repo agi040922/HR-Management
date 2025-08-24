@@ -142,8 +142,8 @@ export default function ExceptionsPage() {
       exception_type: null,
       working_slots: [],
       selected_slots: [],
-      start_time: '09:00',
-      end_time: '18:00',
+      start_time: '',
+      end_time: '',
       notes: '',
       exception_data: {},
       affected_slots: []

@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { OptimizationSuggestionComponent } from '@/components/optimization-suggestion-2025'
-import { exampleEmployees, exampleSchedules } from '@/data/example-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Target, Lightbulb, AlertTriangle } from 'lucide-react'
 

@@ -345,7 +345,7 @@ export default function ExceptionWizard({
                   <span className="ml-2 font-medium">{getExceptionTypeLabel(wizardData.exception_type || '')}</span>
                 </div>
 
-                {wizardData.exception_type !== 'CANCEL' && (
+                {wizardData.start_time && wizardData.end_time && (
                   <div className="col-span-2">
                     <span className="text-gray-600">시간:</span>
                     <span className="ml-2 font-medium">{wizardData.start_time} - {wizardData.end_time}</span>
@@ -385,7 +385,6 @@ export default function ExceptionWizard({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-full p-4">
-        <div className="fixed inset-0 bg-black bg-opacity-25" onClick={onClose}></div>
         <div className="relative bg-white rounded-lg shadow-2xl border max-w-2xl w-full">
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
