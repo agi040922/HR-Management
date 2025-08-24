@@ -49,6 +49,16 @@ export default function ExceptionWizard({
   onSubmit,
   getWorkingSlots
 }: ExceptionWizardProps) {
+  // 3단계 근무 슬롯 자동 업데이트 (항상 실행되어야 함)
+  React.useEffect(() => {
+    if (wizardData.step === 3 && wizardData.template_id && wizardData.employee_id) {
+      const workingSlots = getWorkingSlots(wizardData.template_id, wizardData.employee_id, wizardData.date)
+      if (JSON.stringify(wizardData.working_slots) !== JSON.stringify(workingSlots)) {
+        onUpdateData({ working_slots: workingSlots })
+      }
+    }
+  }, [wizardData.step, wizardData.template_id, wizardData.employee_id, wizardData.date, wizardData.working_slots, getWorkingSlots, onUpdateData])
+
   if (!isOpen) return null
 
   const renderStepContent = () => {
@@ -135,11 +145,11 @@ export default function ExceptionWizard({
                 {[
                   { type: 'CANCEL', label: '휴무', desc: '근무하지 않음', color: 'red' },
                   { type: 'OVERRIDE', label: '시간 변경', desc: '다른 시간에 근무', color: 'blue' },
-                  { type: 'ADDITIONAL', label: '추가 근무', desc: '추가로 근무', color: 'green' }
+                  { type: 'EXTRA', label: '추가 근무', desc: '추가로 근무', color: 'green' }
                 ].map((option) => (
                   <button
                     key={option.type}
-                    onClick={() => onUpdateData({ exception_type: option.type as 'CANCEL' | 'OVERRIDE' | 'ADDITIONAL' })}
+                    onClick={() => onUpdateData({ exception_type: option.type as 'CANCEL' | 'OVERRIDE' | 'EXTRA' })}
                     className={`p-4 text-left border-2 rounded-lg transition-all ${
                       wizardData.exception_type === option.type
                         ? `border-${option.color}-500 bg-${option.color}-50`
@@ -159,11 +169,6 @@ export default function ExceptionWizard({
         if (!wizardData.template_id || !wizardData.employee_id) return null
         
         const workingSlots = getWorkingSlots(wizardData.template_id, wizardData.employee_id, wizardData.date)
-        
-        // 위저드 데이터에 근무 슬롯 저장
-        if (JSON.stringify(wizardData.working_slots) !== JSON.stringify(workingSlots)) {
-          onUpdateData({ working_slots: workingSlots })
-        }
 
         return (
           <div className="space-y-4">
@@ -276,8 +281,11 @@ export default function ExceptionWizard({
                   <Input
                     type="time"
                     id="new_start_time"
-                    value={wizardData.start_time}
-                    onChange={(e) => onUpdateData({ start_time: e.target.value })}
+                    value={wizardData.start_time || ''}
+                    onChange={(e) => {
+                      console.log('🔍 시작 시간 변경:', e.target.value)
+                      onUpdateData({ start_time: e.target.value })
+                    }}
                     required
                   />
                 </div>
@@ -286,8 +294,11 @@ export default function ExceptionWizard({
                   <Input
                     type="time"
                     id="new_end_time"
-                    value={wizardData.end_time}
-                    onChange={(e) => onUpdateData({ end_time: e.target.value })}
+                    value={wizardData.end_time || ''}
+                    onChange={(e) => {
+                      console.log('🔍 종료 시간 변경:', e.target.value)
+                      onUpdateData({ end_time: e.target.value })
+                    }}
                     required
                   />
                 </div>

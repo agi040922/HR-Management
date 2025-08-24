@@ -196,6 +196,11 @@ export default function ExceptionsPage() {
     try {
       setSubmitting(true)
       const exceptionData = buildExceptionDataFromWizard(wizardData, selectedStore.id)
+      
+      // 디버깅: 저장할 데이터 확인
+      console.log('🔍 저장할 예외사항 데이터:', exceptionData)
+      console.log('🔍 위저드 데이터:', wizardData)
+      
       await createException(exceptionData)
       
       toast.success('예외사항이 성공적으로 등록되었습니다')

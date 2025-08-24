@@ -44,7 +44,7 @@ export interface ExceptionData {
   employee_id?: number
   template_id?: number
   date: string
-  exception_type: 'CANCEL' | 'OVERRIDE' | 'ADDITIONAL'
+  exception_type: 'CANCEL' | 'OVERRIDE' | 'EXTRA'
   start_time?: string
   end_time?: string
   notes?: string
@@ -66,7 +66,7 @@ export interface ExceptionWizardData {
   template_id: number | null
   employee_id: number | null
   date: string
-  exception_type: 'CANCEL' | 'OVERRIDE' | 'ADDITIONAL' | null
+  exception_type: 'CANCEL' | 'OVERRIDE' | 'EXTRA' | null
   working_slots: WorkingSlot[]
   selected_slots: string[]
   start_time: string
@@ -230,8 +230,8 @@ export function buildExceptionDataFromWizard(
     template_id: wizardData.template_id!,
     date: wizardData.date,
     exception_type: wizardData.exception_type!,
-    start_time: wizardData.exception_type !== 'CANCEL' ? wizardData.start_time : undefined,
-    end_time: wizardData.exception_type !== 'CANCEL' ? wizardData.end_time : undefined,
+    start_time: wizardData.start_time || undefined,
+    end_time: wizardData.end_time || undefined,
     notes: wizardData.notes || undefined,
     exception_data: {}, // 빈 객체로 유지 (DB 스키마 호환성)
     affected_slots: [] // 빈 배열로 유지 (DB 스키마 호환성)
@@ -242,7 +242,7 @@ export function getExceptionTypeLabel(type: string): string {
   switch (type) {
     case 'CANCEL': return '휴무'
     case 'OVERRIDE': return '변경'
-    case 'ADDITIONAL': return '추가'
+    case 'EXTRA': return '추가'
     default: return type
   }
 }
@@ -251,7 +251,7 @@ export function getExceptionTypeBadgeVariant(type: string): string {
   switch (type) {
     case 'CANCEL': return 'destructive'
     case 'OVERRIDE': return 'default'
-    case 'ADDITIONAL': return 'secondary'
+    case 'EXTRA': return 'secondary'
     default: return 'default'
   }
 }
