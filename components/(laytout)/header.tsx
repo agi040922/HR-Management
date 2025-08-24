@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Building2, Bell, User, Search } from "lucide-react"
+import Image from "next/image"
+import { Bell, User, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
@@ -12,7 +13,14 @@ import { supabase } from "@/lib/supabase"
 const DESIGN_COLORS = {
   primary: {
     main: '#1A73E8',
-    text: '#FFFFFF'
+    light: '#4285F4',
+    dark: '#1557B0',
+    text: '#FFFFFF',
+    hover: '#185ABC'
+  },
+  accent: {
+    orange: '#FF6B35',
+    orangeHover: '#E55A2B'
   },
   text: {
     primary: '#202124',
@@ -20,8 +28,10 @@ const DESIGN_COLORS = {
     muted: '#9AA0A6'
   },
   background: {
-    border: '#E0E0E0',
-    hover: '#F8F9FA'
+    main: '#F8FBFF', // 매우 연한 파란색 배경
+    hover: '#E6F3FF',
+    selected: '#E8F0FE',
+    border: '#D1E7FF' // 파란색 계열 테두리
   }
 }
 
@@ -105,20 +115,18 @@ export function Header() {
       {/* 로고 및 제목 */}
       <div className="flex items-center gap-3">
         <Link href="/" className="flex items-center gap-2">
-          <Building2 
-            className="h-7 w-7" 
-            style={{ color: DESIGN_COLORS.primary.main }}
-          />
-          <span 
-            className="text-xl font-semibold"
+          <Image
+            src="/로고.png"
+            alt="HR FAIR 인사노무"
+            width={140}
+            height={36}
+            className="h-9"
             style={{ 
-              color: DESIGN_COLORS.text.primary,
-              fontSize: '20px',
-              fontWeight: '600'
+              objectFit: 'contain',
+              filter: 'none'
             }}
-          >
-            HR 관리 시스템
-          </span>
+            priority
+          />
         </Link>
       </div>
 

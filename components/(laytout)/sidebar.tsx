@@ -111,9 +111,9 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse, onSetting
       isCollapsible: true,
       items: [
         {
-          title: "스케줄 관리",
-          href: "/schedule/view",
-          icon: Calendar
+          title: "매장 관리",
+          href: "/stores",
+          icon: Building2
         },
         {
           title: "직원 관리",
@@ -121,9 +121,9 @@ export function Sidebar({ isMobile = false, onMobileClose, onCollapse, onSetting
           icon: Users
         },
         {
-          title: "팀 관리",
-          href: "/team",
-          icon: UserCheck
+          title: "스케줄 관리",
+          href: "/schedule/view",
+          icon: Calendar
         },
         {
           title: "예외사항 관리",
