@@ -60,10 +60,10 @@ export default function TestimonialsSection() {
         {/* 섹션 헤더 */}
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            대한민국 대표 기업들이 선택한 시프티
+            대한민국 대표 기업들이 선택한 FAIR
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            다양한 업종의 기업들이 시프티와 함께 인사업무 혁신을 이루고 있습니다
+            다양한 업종의 기업들이 FAIR와 함께 인사업무 혁신을 이루고 있습니다
           </p>
         </div>
 
@@ -117,10 +117,10 @@ export default function TestimonialsSection() {
         <div className="mt-16 text-center">
           <div className="bg-white p-8 lg:p-12 rounded-2xl shadow-sm border border-gray-200">
             <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
-              당신의 기업도 시프티와 함께 성장하세요
+              당신의 기업도 FAIR와 함께 성장하세요
             </h3>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              14일 무료 체험으로 시프티의 모든 기능을 경험해보세요. 
+              14일 무료 체험으로 FAIR의 모든 기능을 경험해보세요. 
               설치나 설정 없이 바로 시작할 수 있습니다.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
