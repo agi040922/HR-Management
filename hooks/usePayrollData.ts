@@ -120,28 +120,32 @@ export function usePayrollData() {
   const calculateStorePayrolls = () => {
     const newStorePayrollData: StorePayrollData[] = []
 
-    selectedStores.forEach(storeId => {
-      const store = stores.find(s => s.id === storeId)
-      const template = storeTemplates.get(storeId)
-      
-      if (!store) return
+    // selectedStores가 Set인지 확인하고 안전하게 이터레이션
+    if (selectedStores && typeof selectedStores.forEach === 'function') {
+      selectedStores.forEach(storeId => {
+        const store = stores.find(s => s.id === storeId)
+        const template = storeTemplates.get(storeId)
+        
+        if (!store) return
 
-      const storeEmployees = employees.filter(emp => emp.store_id === storeId)
-      const storeSchedules = schedules.filter(sch => sch.store_id === storeId)
+        // 배열 안전성 확인
+        const storeEmployees = Array.isArray(employees) ? employees.filter(emp => emp.store_id === storeId) : []
+        const storeSchedules = Array.isArray(schedules) ? schedules.filter(sch => sch.store_id === storeId) : []
 
-      const payrollData = storeEmployees.map(employee => 
-        PayrollCalculator.calculateEmployeePayroll(employee, storeSchedules)
-      )
+        const payrollData = storeEmployees.map(employee => 
+          PayrollCalculator.calculateEmployeePayroll(employee, storeSchedules)
+        )
 
-      const totals = PayrollCalculator.calculateTotals(payrollData)
+        const totals = PayrollCalculator.calculateTotals(payrollData)
 
-      newStorePayrollData.push({
-        store,
-        template,
-        payrollData,
-        totals
+        newStorePayrollData.push({
+          store,
+          template,
+          payrollData,
+          totals
+        })
       })
-    })
+    }
 
     setStorePayrollData(newStorePayrollData)
   }
@@ -150,18 +154,23 @@ export function usePayrollData() {
    * 필터링된 스토어 데이터
    */
   const getFilteredStoreData = () => {
+    // storePayrollData가 배열인지 확인
+    if (!Array.isArray(storePayrollData)) {
+      return []
+    }
+
     return storePayrollData.map(storeData => ({
       ...storeData,
-      payrollData: storeData.payrollData.filter(data => {
+      payrollData: Array.isArray(storeData.payrollData) ? storeData.payrollData.filter(data => {
         const matchesSearch = data.employee.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-                             data.employee.position.toLowerCase().includes(filters.searchTerm.toLowerCase())
+                             (data.employee.position || '').toLowerCase().includes(filters.searchTerm.toLowerCase())
         
         const matchesFilter = filters.filterStatus === 'all' ||
                              (filters.filterStatus === 'holiday-eligible' && data.isEligibleForHolidayPay) ||
                              (filters.filterStatus === 'holiday-not-eligible' && !data.isEligibleForHolidayPay)
         
         return matchesSearch && matchesFilter
-      })
+      }) : []
     }))
   }
 
@@ -169,14 +178,27 @@ export function usePayrollData() {
    * 전체 합계 계산
    */
   const getGrandTotals = (): PayrollTotals => {
+    // storePayrollData가 배열인지 확인
+    if (!Array.isArray(storePayrollData)) {
+      return {
+        totalEmployees: 0,
+        totalHours: 0,
+        totalRegularPay: 0,
+        totalOvertimePay: 0,
+        totalNightPay: 0,
+        totalHolidayPay: 0,
+        totalPay: 0
+      }
+    }
+
     return storePayrollData.reduce((acc, storeData) => ({
-      totalEmployees: acc.totalEmployees + storeData.totals.totalEmployees,
-      totalHours: acc.totalHours + storeData.totals.totalHours,
-      totalRegularPay: acc.totalRegularPay + storeData.totals.totalRegularPay,
-      totalOvertimePay: acc.totalOvertimePay + storeData.totals.totalOvertimePay,
-      totalNightPay: acc.totalNightPay + storeData.totals.totalNightPay,
-      totalHolidayPay: acc.totalHolidayPay + storeData.totals.totalHolidayPay,
-      totalPay: acc.totalPay + storeData.totals.totalPay
+      totalEmployees: acc.totalEmployees + (storeData.totals?.totalEmployees || 0),
+      totalHours: acc.totalHours + (storeData.totals?.totalHours || 0),
+      totalRegularPay: acc.totalRegularPay + (storeData.totals?.totalRegularPay || 0),
+      totalOvertimePay: acc.totalOvertimePay + (storeData.totals?.totalOvertimePay || 0),
+      totalNightPay: acc.totalNightPay + (storeData.totals?.totalNightPay || 0),
+      totalHolidayPay: acc.totalHolidayPay + (storeData.totals?.totalHolidayPay || 0),
+      totalPay: acc.totalPay + (storeData.totals?.totalPay || 0)
     }), {
       totalEmployees: 0,
       totalHours: 0,
@@ -208,11 +230,14 @@ export function usePayrollData() {
    * 전체 스토어 선택/해제
    */
   const toggleAllStores = () => {
-    if (selectedStores.size === stores.length) {
+    // 안전한 배열 확인
+    const storeArray = Array.isArray(stores) ? stores : []
+    
+    if (selectedStores.size === storeArray.length) {
       setSelectedStores(new Set())
       setStoreTemplates(new Map())
     } else {
-      setSelectedStores(new Set(stores.map(store => store.id)))
+      setSelectedStores(new Set(storeArray.map(store => store.id)))
     }
   }
 

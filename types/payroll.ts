@@ -1,20 +1,25 @@
 export interface Employee {
   id: number
   name: string
-  position: string
+  position?: string
   hourly_wage: number
   store_id: number
   owner_id: string
   is_active: boolean
+  phone?: string
+  start_date?: string
+  labor_contract?: any
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Store {
   id: number
   store_name: string
-  open_time: string
-  close_time: string
   time_slot_minutes: number
   owner_id: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface WorkSchedule {

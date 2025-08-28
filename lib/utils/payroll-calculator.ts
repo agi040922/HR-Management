@@ -44,7 +44,9 @@ export class PayrollCalculator {
     employee: Employee,
     schedules: WorkSchedule[]
   ): PayrollData {
-    const employeeSchedules = schedules.filter(s => s.employee_id === employee.id)
+    // 스케줄 배열 안전성 확인
+    const safeSchedules = Array.isArray(schedules) ? schedules : []
+    const employeeSchedules = safeSchedules.filter(s => s.employee_id === employee.id)
     
     let totalHours = 0
     let regularHours = 0
@@ -68,9 +70,9 @@ export class PayrollCalculator {
     }
 
     // 급여 계산
-    const regularPay = regularHours * employee.hourlyWage
-    const overtimePay = overtimeHours * employee.hourlyWage * 1.5
-    const nightPay = nightHours * employee.hourlyWage * 0.5
+    const regularPay = regularHours * employee.hourly_wage
+    const overtimePay = overtimeHours * employee.hourly_wage * 1.5
+    const nightPay = nightHours * employee.hourly_wage * 0.5
 
     // 주휴수당 계산 (주 15시간 이상 근무 시)
     const isEligibleForHolidayPay = totalHours >= this.WEEKLY_HOURS_FOR_HOLIDAY_PAY
@@ -79,7 +81,7 @@ export class PayrollCalculator {
     const totalPay = regularPay + overtimePay + nightPay + holidayPay
 
     // 월급 및 실수령액 계산
-    const monthlySalary = this.calculateMonthlySalary(totalHours, employee.hourlyWage, isEligibleForHolidayPay)
+    const monthlySalary = this.calculateMonthlySalary(totalHours, employee.hourly_wage, isEligibleForHolidayPay)
     const netSalary = this.calculateNetSalary(monthlySalary)
 
     return {
@@ -182,14 +184,27 @@ export class PayrollCalculator {
    * 급여 데이터 배열의 합계 계산
    */
   static calculateTotals(payrollData: PayrollData[]): PayrollTotals {
+    // 배열 안전성 확인
+    if (!Array.isArray(payrollData)) {
+      return {
+        totalEmployees: 0,
+        totalHours: 0,
+        totalRegularPay: 0,
+        totalOvertimePay: 0,
+        totalNightPay: 0,
+        totalHolidayPay: 0,
+        totalPay: 0
+      }
+    }
+
     return {
       totalEmployees: payrollData.length,
-      totalHours: payrollData.reduce((sum, data) => sum + data.weeklyHours, 0),
-      totalRegularPay: payrollData.reduce((sum, data) => sum + data.regularPay, 0),
-      totalOvertimePay: payrollData.reduce((sum, data) => sum + data.overtimePay, 0),
-      totalNightPay: payrollData.reduce((sum, data) => sum + data.nightPay, 0),
-      totalHolidayPay: payrollData.reduce((sum, data) => sum + data.holidayPay, 0),
-      totalPay: payrollData.reduce((sum, data) => sum + data.totalPay, 0)
+      totalHours: payrollData.reduce((sum, data) => sum + (data.weeklyHours || 0), 0),
+      totalRegularPay: payrollData.reduce((sum, data) => sum + (data.regularPay || 0), 0),
+      totalOvertimePay: payrollData.reduce((sum, data) => sum + (data.overtimePay || 0), 0),
+      totalNightPay: payrollData.reduce((sum, data) => sum + (data.nightPay || 0), 0),
+      totalHolidayPay: payrollData.reduce((sum, data) => sum + (data.holidayPay || 0), 0),
+      totalPay: payrollData.reduce((sum, data) => sum + (data.totalPay || 0), 0)
     }
   }
 }
