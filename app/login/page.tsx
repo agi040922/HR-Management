@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,16 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 /**
- * HR 관리 시스템 로그인 페이지
- * 
- * 기능:
- * 1. 이메일/비밀번호 로그인
- * 2. 회원가입
- * 3. 소셜 로그인 (Google, GitHub)
- * 4. 로그인 성공 시 원래 접근하려던 페이지 또는 /profiles로 리다이렉트
- * 5. 미들웨어에서 전달된 리다이렉트 URL 처리
+ * SearchParams를 사용하는 내부 컴포넌트
  */
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -314,5 +307,30 @@ export default function LoginPage() {
         </Tabs>
       </div>
     </div>
+  )
+}
+
+/**
+ * HR 관리 시스템 로그인 페이지
+ * 
+ * 기능:
+ * 1. 이메일/비밀번호 로그인
+ * 2. 회원가입
+ * 3. 소셜 로그인 (Google, GitHub)
+ * 4. 로그인 성공 시 원래 접근하려던 페이지 또는 /profiles로 리다이렉트
+ * 5. 미들웨어에서 전달된 리다이렉트 URL 처리
+ */
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
