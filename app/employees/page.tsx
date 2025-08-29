@@ -66,6 +66,12 @@ interface EmployeeFormData {
   start_date: string
   is_active: boolean
   labor_contract?: any | null
+  work_start_time: string
+  work_end_time: string
+  break_start_time: string
+  break_end_time: string
+  work_days_per_week: number
+  weekly_work_hours: number
 }
 
 export default function EmployeesPage() {
@@ -84,7 +90,13 @@ export default function EmployeesPage() {
     phone: '',
     start_date: new Date().toISOString().split('T')[0],
     is_active: true,
-    labor_contract: null
+    labor_contract: null,
+    work_start_time: '',
+    work_end_time: '',
+    break_start_time: '',
+    break_end_time: '',
+    work_days_per_week: 0,
+    weekly_work_hours: 0
   })
   const [submitting, setSubmitting] = useState(false)
   const [selectedStore, setSelectedStore] = useState<number | 'all'>('all')
@@ -249,7 +261,13 @@ export default function EmployeesPage() {
       phone: employee.phone || '',
       start_date: employee.start_date || new Date().toISOString().split('T')[0],
       is_active: employee.is_active,
-      labor_contract: employee.labor_contract || null
+      labor_contract: employee.labor_contract || null,
+      work_start_time: employee.work_start_time || '',
+      work_end_time: employee.work_end_time || '',
+      break_start_time: employee.break_start_time || '',
+      break_end_time: employee.break_end_time || '',
+      work_days_per_week: employee.work_days_per_week || 0,
+      weekly_work_hours: employee.weekly_work_hours || 0
     })
     setShowCreateForm(false)
   }
@@ -263,7 +281,13 @@ export default function EmployeesPage() {
       phone: '',
       start_date: new Date().toISOString().split('T')[0],
       is_active: true,
-      labor_contract: null
+      labor_contract: null,
+      work_start_time: '',
+      work_end_time: '',
+      break_start_time: '',
+      break_end_time: '',
+      work_days_per_week: 0,
+      weekly_work_hours: 0
     })
   }
 
@@ -549,6 +573,60 @@ export default function EmployeesPage() {
                         onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
                       />
                       <Label htmlFor="is_active">활성 상태</Label>
+                    </div>
+                    <div>
+                      <Label htmlFor="work_start_time">근무 시작 시간</Label>
+                      <Input
+                        id="work_start_time"
+                        type="time"
+                        value={formData.work_start_time}
+                        onChange={(e) => setFormData({...formData, work_start_time: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="work_end_time">근무 종료 시간</Label>
+                      <Input
+                        id="work_end_time"
+                        type="time"
+                        value={formData.work_end_time}
+                        onChange={(e) => setFormData({...formData, work_end_time: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="break_start_time">휴게 시작 시간</Label>
+                      <Input
+                        id="break_start_time"
+                        type="time"
+                        value={formData.break_start_time}
+                        onChange={(e) => setFormData({...formData, break_start_time: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="break_end_time">휴게 종료 시간</Label>
+                      <Input
+                        id="break_end_time"
+                        type="time"
+                        value={formData.break_end_time}
+                        onChange={(e) => setFormData({...formData, break_end_time: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="work_days_per_week">주 근무 일수</Label>
+                      <Input
+                        id="work_days_per_week"
+                        type="number"
+                        value={formData.work_days_per_week}
+                        onChange={(e) => setFormData({...formData, work_days_per_week: parseInt(e.target.value)})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="weekly_work_hours">주 근무 시간</Label>
+                      <Input
+                        id="weekly_work_hours"
+                        type="number"
+                        value={formData.weekly_work_hours}
+                        onChange={(e) => setFormData({...formData, weekly_work_hours: parseInt(e.target.value)})}
+                      />
                     </div>
                   </div>
                   <div className="space-y-3">

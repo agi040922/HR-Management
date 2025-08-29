@@ -1,181 +1,119 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { ChevronDown, Menu, X, Bell, Search } from 'lucide-react'
-
-const categories = [
-  { name: '근무관리', href: '#work-management', color: 'from-blue-500 to-blue-600' },
-  { name: '급여관리', href: '#payroll', color: 'from-green-500 to-green-600' },
-  { name: '인사관리', href: '#hr', color: 'from-purple-500 to-purple-600' },
-  { name: '전자계약', href: '#contract', color: 'from-orange-500 to-orange-600' },
-  { name: '출퇴근', href: '#attendance', color: 'from-red-500 to-red-600' },
-  { name: '휴가관리', href: '#vacation', color: 'from-teal-500 to-teal-600' },
-  { name: '근태정산', href: '#settlement', color: 'from-indigo-500 to-indigo-600' },
-  { name: '시설관리', href: '#facility', color: 'from-pink-500 to-pink-600' }
-]
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { Search, User, Calendar } from 'lucide-react'
 
 export default function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState(0)
-  const [isScrolled, setIsScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <header className={`fixed top-0 w-full z-50 bg-white transition-all duration-300 ${
-      isScrolled ? 'shadow-lg backdrop-blur-md bg-white/95' : 'shadow-sm'
-    }`}>
-      {/* 상단 프로모션 배너 */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-2.5">
-            <div className="flex items-center space-x-2">
-              <span className="animate-pulse">🎊</span>
-              <span className="text-sm font-medium">
-                새로운 HR 솔루션 런칭! 14일 무료 체험 기회를 놓치지 마세요
-              </span>
-              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">NEW</span>
-            </div>
-            <button className="text-white/80 hover:text-white text-sm transition-colors">
-              ✕
-            </button>
-          </div>
-        </div>
+    <header className="bg-white/95 backdrop-blur-md border-b border-gray-200 fixed top-0 left-0 right-0 z-50 shadow-sm">
+      {/* 상단 배너 */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-2 text-sm relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+        <span className="relative z-10 animate-bounce">🎉 HR 관리 시스템 런칭 기념 특가! 지금 가입하고 3개월 무료 이용하세요</span>
+        <button className="ml-4 text-blue-200 hover:text-white transition-colors duration-200 relative z-10">×</button>
       </div>
 
       {/* 메인 헤더 */}
-      <div className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* 로고 섹션 */}
-            <div className="flex items-center space-x-8">
-              <div className="flex-shrink-0">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center transform hover:scale-105 transition-transform duration-200">
-                    <span className="text-white font-bold text-lg">F</span>
-                          </div>
-                          <div>
-                    <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      FAIR 인사노무
-                          </div>
-                    <div className="text-xs text-gray-500 font-medium">Smart HR Solution</div>
-                  </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* 로고 */}
+          <div className="flex items-center">
+            <Link href="/" className="group">
+              <span className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-all duration-300 transform group-hover:scale-105">
+                FAIR인사노무
+              </span>
+            </Link>
+          </div>
+
+          {/* 네비게이션 */}
+          <nav 
+            className="hidden md:flex items-center space-x-8"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="group relative">
+              <Link href="/" className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium">
+                홈
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+            </div>
+            
+            <div className="group relative">
+              <Link href="/features" className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium">
+                솔루션
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+              
+              {/* 드롭다운 메뉴 */}
+              <div className={`absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 transition-all duration-300 ${
+                isHovered ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+              }`}>
+                <div className="p-4 space-y-3">
+                  <Link href="/attendance" className="block px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                    📅 근태관리
+                  </Link>
+                  <Link href="/payroll" className="block px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                    💰 급여관리
+                  </Link>
+                  <Link href="/hr" className="block px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                    👥 인사관리
+                  </Link>
+                  <Link href="/contract" className="block px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                    📋 전자계약
+                  </Link>
+                  <Link href="/analytics" className="block px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                    📊 HR분석
+                  </Link>
                 </div>
               </div>
-
-              {/* 데스크톱 네비게이션 */}
-              <nav className="hidden md:flex items-center space-x-8">
-                <a href="/landing" className="group relative text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">
-                  홈
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                </a>
-                <a href="/solutions" className="group relative text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">
-                  솔루션
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                </a>
-                <a href="/hr-management" className="group relative text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">
-                  인사노무
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                </a>
-              </nav>
             </div>
+            
+            <div className="group relative">
+              <Link href="/pricing" className="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium">
+                요금제
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+            </div>
+          </nav>
 
-            {/* 우측 버튼 그룹 */}
-            <div className="flex items-center space-x-4">
-                            {/* 검색 버튼 */}
-              <button className="hidden sm:flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200">
-                <Search className="w-5 h-5" />
-              </button>
-              
-              {/* 알림 버튼 */}
-              <button className="hidden sm:flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-              </button>
-
-              {/* 로그인 버튼 */}
-              <button className="hidden sm:block text-gray-700 hover:text-blue-600 px-4 py-2 text-sm font-medium transition-colors duration-200 border border-gray-300 rounded-lg hover:border-blue-300 hover:bg-blue-50">
-                로그인
-              </button>
-              
-              {/* 내 예약 버튼 */}
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                내 예약
-              </button>
-
-          {/* 모바일 메뉴 버튼 */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                {isMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
+          {/* 우측 버튼들 */}
+          <div className="flex items-center space-x-4">
+            <button className="group px-3 py-2 text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium">
+              로그인
+              <span className="block w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </button>
-            </div>
+            <button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+              <span className="text-sm font-medium">무료 체험</span>
+            </button>
+            <button className="md:hidden group" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <div className="w-6 h-6 flex flex-col justify-center items-center">
+                <span className="block w-5 h-0.5 bg-gray-600 mb-1 transition-all duration-300 group-hover:bg-blue-600"></span>
+                <span className="block w-5 h-0.5 bg-gray-600 mb-1 transition-all duration-300 group-hover:bg-blue-600"></span>
+                <span className="block w-5 h-0.5 bg-gray-600 transition-all duration-300 group-hover:bg-blue-600"></span>
+              </div>
+            </button>
           </div>
         </div>
-
-        {/* 모바일 메뉴 */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white shadow-lg">
-            <div className="px-4 py-3 space-y-2">
-              <a href="/landing" className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
-                홈
-              </a>
-              <a href="/solutions" className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
-                솔루션
-              </a>
-              <a href="/hr-management" className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
-                인사노무
-              </a>
-              <div className="pt-2 border-t border-gray-100 space-y-2">
-                <button className="w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
-                  로그인
-                </button>
-                <button className="w-full text-left px-3 py-2 text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                  내 예약
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* 카테고리 탭 섹션 */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+      {/* 카테고리 네비게이션 */}
+      <div className="bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center py-3 overflow-x-auto scrollbar-hide">
-            <div className="flex space-x-2 min-w-max">
-              {categories.map((category, index) => (
-                <button
-                  key={category.name}
-                  onClick={() => setActiveCategory(index)}
-                  className={`group relative px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-300 transform hover:scale-105 ${
-                    activeCategory === index
-                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-                      : 'text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm'
-                  }`}
-                >
-                  <span className="relative z-10">{category.name}</span>
-                  {activeCategory === index && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 rounded-full animate-pulse"></div>
-                  )}
-                </button>
-              ))}
-            </div>
-            <button className="ml-4 px-4 py-2 text-sm text-gray-500 hover:text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors">
-              더보기 →
-            </button>
-          </div>
+          <nav className="flex items-center space-x-8 py-3 overflow-x-auto">
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-900 hover:text-blue-600">근태관리</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">급여관리</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">인사관리</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">전자계약</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">성과관리</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">채용관리</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">교육관리</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">분석리포트</Link>
+            <Link href="#" className="whitespace-nowrap text-sm font-medium text-gray-700 hover:text-blue-600">고객지원</Link>
+          </nav>
         </div>
       </div>
     </header>

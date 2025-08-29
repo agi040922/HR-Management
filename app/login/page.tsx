@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 /**
  * HR 관리 시스템 로그인 페이지
@@ -17,10 +17,12 @@ import { useRouter } from 'next/navigation'
  * 1. 이메일/비밀번호 로그인
  * 2. 회원가입
  * 3. 소셜 로그인 (Google, GitHub)
- * 4. 로그인 성공 시 /profiles로 리다이렉트
+ * 4. 로그인 성공 시 원래 접근하려던 페이지 또는 /profiles로 리다이렉트
+ * 5. 미들웨어에서 전달된 리다이렉트 URL 처리
  */
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   
   // 상태 관리: 각 폼의 입력값과 로딩/에러 상태
   const [email, setEmail] = useState('')
@@ -28,16 +30,25 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [redirectTo, setRedirectTo] = useState<string>('/profiles')
+
+  // 컴포넌트 마운트 시 리다이렉트 URL 확인
+  useEffect(() => {
+    const fromParam = searchParams.get('from')
+    if (fromParam) {
+      setRedirectTo(fromParam)
+      setMessage(`로그인 후 ${fromParam} 페이지로 이동됩니다.`)
+    }
+  }, [searchParams])
 
   /**
    * 이메일/비밀번호로 로그인하는 함수
-   * 성공 시 /profiles로 리다이렉트
+   * 성공 시 원래 접근하려던 페이지 또는 /profiles로 리다이렉트
    */
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setMessage('')
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -48,10 +59,10 @@ export default function LoginPage() {
       if (error) {
         setError(`로그인 실패: ${error.message}`)
       } else {
-        setMessage('로그인 성공! 프로필 페이지로 이동합니다.')
+        setMessage(`로그인 성공! ${redirectTo === '/profiles' ? '프로필' : redirectTo} 페이지로 이동합니다.`)
         console.log('로그인 성공:', data)
-        // 프로필 페이지로 리다이렉트
-        router.push('/profiles')
+        // 원래 접근하려던 페이지 또는 프로필 페이지로 리다이렉트
+        router.push(redirectTo)
       }
     } catch (err) {
       setError('예상치 못한 오류가 발생했습니다.')
@@ -77,7 +88,7 @@ export default function LoginPage() {
         password,
         options: {
           // 회원가입 확인 후 리다이렉트될 URL
-          emailRedirectTo: `${window.location.origin}/profiles`
+          emailRedirectTo: `${window.location.origin}${redirectTo}`
         }
       })
 
@@ -97,27 +108,36 @@ export default function LoginPage() {
 
   /**
    * Google OAuth 로그인 함수
-   * 성공 시 /profiles로 리다이렉트
+   * 성공 시 원래 접근하려던 페이지 또는 /profiles로 리다이렉트
    */
   const handleGoogleLogin = async () => {
+    console.log('🔵 [GOOGLE LOGIN] 구글 로그인 시작')
+    console.log('🔵 [GOOGLE LOGIN] 리다이렉트 URL:', `${window.location.origin}${redirectTo}`)
+    
     setLoading(true)
     setError('')
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/profiles`
+          redirectTo: `${window.location.origin}${redirectTo}`
         }
       })
 
+      console.log('🔵 [GOOGLE LOGIN] OAuth 응답:', { data, error })
+
       if (error) {
+        console.error('❌ [GOOGLE LOGIN] 로그인 실패:', error)
         setError(`Google 로그인 실패: ${error.message}`)
+      } else {
+        console.log('✅ [GOOGLE LOGIN] OAuth 요청 성공, 리다이렉트 진행 중...')
+        setMessage('Google로 로그인 중입니다...')
       }
     } catch (err) {
+      console.error('❌ [GOOGLE LOGIN] 예상치 못한 오류:', err)
       setError('예상치 못한 오류가 발생했습니다.')
-      console.error('Google 로그인 오류:', err)
     } finally {
       setLoading(false)
     }
@@ -125,7 +145,7 @@ export default function LoginPage() {
 
   /**
    * GitHub OAuth 로그인 함수
-   * 성공 시 /profiles로 리다이렉트
+   * 성공 시 원래 접근하려던 페이지 또는 /profiles로 리다이렉트
    */
   const handleGitHubLogin = async () => {
     setLoading(true)
@@ -136,7 +156,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/profiles`
+          redirectTo: `${window.location.origin}${redirectTo}`
         }
       })
 

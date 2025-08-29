@@ -3,7 +3,32 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// 기본 클라이언트 (localStorage 사용)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// 쿠키 기반 클라이언트 (미들웨어와 SSR용)
+export const supabaseCookie = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: {
+      getItem: (key: string) => {
+        if (typeof window === 'undefined') return null
+        return window.localStorage.getItem(key)
+      },
+      setItem: (key: string, value: string) => {
+        if (typeof window === 'undefined') return
+        window.localStorage.setItem(key, value)
+        // 쿠키에도 저장
+        document.cookie = `${key}=${value}; path=/; max-age=86400; secure; samesite=strict`
+      },
+      removeItem: (key: string) => {
+        if (typeof window === 'undefined') return
+        window.localStorage.removeItem(key)
+        // 쿠키에서도 제거
+        document.cookie = `${key}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      }
+    }
+  }
+})
 
 // 데이터베이스 타입 정의
 export type Database = {

@@ -20,16 +20,23 @@ export const useAuth = () => {
   useEffect(() => {
     // 현재 세션 가져오기
     const getSession = async () => {
+      console.log('🔄 [useAuth] 초기 세션 확인 중...')
       try {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) {
-          console.error('세션 가져오기 오류:', error)
+          console.error('❌ [useAuth] 세션 가져오기 오류:', error)
         } else {
+          console.log('✅ [useAuth] 초기 세션 확인 완료:', {
+            hasSession: !!session,
+            userId: session?.user?.id,
+            email: session?.user?.email,
+            provider: session?.user?.app_metadata?.provider
+          })
           setSession(session)
           setUser(session?.user || null)
         }
       } catch (err) {
-        console.error('예상치 못한 오류:', err)
+        console.error('❌ [useAuth] 예상치 못한 오류:', err)
       } finally {
         setLoading(false)
       }
@@ -40,14 +47,23 @@ export const useAuth = () => {
     // 인증 상태 변화 리스너
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth 상태 변화:', event, session?.user?.email)
+        console.log('🔔 [useAuth] Auth 상태 변화:', {
+          event,
+          hasSession: !!session,
+          userId: session?.user?.id,
+          email: session?.user?.email,
+          provider: session?.user?.app_metadata?.provider
+        })
         setSession(session)
         setUser(session?.user || null)
         setLoading(false)
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log('🧹 [useAuth] 구독 해제')
+      subscription.unsubscribe()
+    }
   }, [])
 
   /**
@@ -68,7 +84,7 @@ export const useAuth = () => {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: redirectTo || `${window.location.origin}/test/profile`
+        emailRedirectTo: redirectTo || `${window.location.origin}/profiles`
       }
     })
     return { data, error }
@@ -85,7 +101,7 @@ export const useAuth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: options?.redirectTo || `${window.location.origin}/test/profile`,
+        emailRedirectTo: options?.redirectTo || `${window.location.origin}/profiles`,
         data: options?.data
       }
     })
@@ -99,7 +115,7 @@ export const useAuth = () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: redirectTo || `${window.location.origin}/test/profile`
+        redirectTo: redirectTo || `${window.location.origin}/profiles`
       }
     })
     return { data, error }
@@ -118,7 +134,7 @@ export const useAuth = () => {
    */
   const resetPassword = async (email: string, redirectTo?: string) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo || `${window.location.origin}/test/profile`
+      redirectTo: redirectTo || `${window.location.origin}/profiles`
     })
     return { data, error }
   }

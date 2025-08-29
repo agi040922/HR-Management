@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import { useTutorial } from '@/components/TutorialProvider'
 import { storesTutorialSteps } from '@/lib/tutorial/tutorial-steps'
 import { getTutorialTheme, TutorialStorage } from '@/lib/tutorial/tutorial-utils'
+import AuthGuard from '@/components/AuthGuard'
 
 // 모듈화된 컴포넌트 및 API import
 import StoreDataTable from '@/components/(page)/stores/StoreDataTable'
@@ -34,8 +35,8 @@ import { supabase } from '@/lib/supabase'
 type SortOption = 'created_at' | 'store_name' | 'employees_count'
 type FilterOption = 'all' | 'has_templates' | 'has_employees' | 'active_only'
 
-export default function StoresPage() {
-  const { user, loading } = useAuth()
+function StoresPageContent() {
+  const { user } = useAuth()
   const router = useRouter()
   const { startTutorial } = useTutorial()
   
@@ -172,12 +173,12 @@ export default function StoresPage() {
       }
     })
 
-  if (loading || loadingData) {
+  if (loadingData) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">데이터를 불러오는 중...</p>
+          <p className="mt-2 text-gray-600">스토어 데이터를 불러오는 중...</p>
         </div>
       </div>
     )
@@ -302,5 +303,14 @@ export default function StoresPage() {
         onSubmit={handleFormSubmit}
       />
     </div>
+  )
+}
+
+// AuthGuard로 보호된 스토어 페이지 export
+export default function StoresPage() {
+  return (
+    <AuthGuard redirectTo="/stores">
+      <StoresPageContent />
+    </AuthGuard>
   )
 }

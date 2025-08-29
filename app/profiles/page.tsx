@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUser } from '@/hooks/useUser'
 import { UserUpdate } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
+import AuthGuard from '@/components/AuthGuard'
 
 /**
  * HR 관리 시스템 프로필 페이지 (통합 버전)
@@ -26,9 +27,9 @@ import { supabase } from '@/lib/supabase'
  * 5. 계정 관리 (이메일/비밀번호 변경)
  * 6. 로그아웃
  */
-export default function ProfilePage() {
+function ProfilePageContent() {
   const router = useRouter()
-  const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { user } = useAuth()
   const { profile, loading, uploading, updateProfile, uploadAvatar, deleteAvatar } = useUser()
   
   // 상태 관리
@@ -323,7 +324,7 @@ export default function ProfilePage() {
   }
 
   // 로딩 상태 표시
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -334,29 +335,7 @@ export default function ProfilePage() {
     )
   }
 
-  // 로그인하지 않은 경우
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-white">
-          <CardHeader className="text-center">
-            <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>
-              프로필을 확인하려면 먼저 로그인하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <Button 
-              onClick={() => router.push('/login')}
-              className="w-full"
-            >
-              로그인 페이지로 이동
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+
 
   return (
     <div className="min-h-screen bg-white p-4">
@@ -802,5 +781,14 @@ export default function ProfilePage() {
         )}
       </div>
     </div>
+  )
+}
+
+// AuthGuard로 보호된 프로필 페이지 export
+export default function ProfilePage() {
+  return (
+    <AuthGuard redirectTo="/profiles">
+      <ProfilePageContent />
+    </AuthGuard>
   )
 }
