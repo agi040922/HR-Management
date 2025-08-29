@@ -156,7 +156,7 @@ async function calculateEmployeeMonthlyPayroll(
   // 예외사항 적용된 최종 스케줄 생성
   const finalSchedule = applyExceptions(baseSchedule, exceptions)
   
-  // 급여 계산
+  // 급여 계산 (주휴수당 포함)
   const monthlySalary = calculateMonthlySalary(
     finalSchedule.weeklyHours, 
     employee.hourly_wage

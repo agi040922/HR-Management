@@ -13,15 +13,30 @@ export function convertToPayrollStatement(
   storeName: string
 ): PayrollStatement {
   // 지급 항목 구성
+  const basicSalaryWithoutHoliday = employeeResult.monthlySalary.grossSalary - 
+    (employeeResult.monthlySalary.holidayHours * employeeResult.employee.hourly_wage)
+  const holidayPayAmount = employeeResult.monthlySalary.holidayHours * employeeResult.employee.hourly_wage
+
   const paymentItems: PaymentItem[] = [
     {
       id: 'basic-salary',
       name: '기본급',
-      amount: employeeResult.monthlySalary.grossSalary,
+      amount: Math.round(basicSalaryWithoutHoliday),
       category: 'basic',
       isRequired: true
     }
   ]
+
+  // 주휴수당이 있는 경우 별도 항목으로 추가
+  if (holidayPayAmount > 0) {
+    paymentItems.push({
+      id: 'holiday-pay',
+      name: '주휴수당',
+      amount: Math.round(holidayPayAmount),
+      category: 'allowance',
+      isRequired: false
+    })
+  }
 
   // 예외사항으로 인한 추가/차감이 있다면 반영
   const exceptionAdjustment = employeeResult.exceptionAdjustments.reduce(

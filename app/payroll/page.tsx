@@ -410,20 +410,24 @@ export default function PayrollPage() {
                                 <h4 className="font-medium text-gray-900 mb-2">급여 내역</h4>
                                 <div className="space-y-1 text-sm">
                                   <div className="flex justify-between">
-                                    <span className="text-gray-600">기본급:</span>
+                                    <span className="text-gray-600">기본급 (주휴수당 포함):</span>
                                     <span>{employeeResult.monthlySalary.grossSalary.toLocaleString()}원</span>
                                   </div>
-                                                                <div className="flex justify-between">
-                                <span className="text-gray-600">예외조정:</span>
-                                <span className="text-gray-900">
-                                  {employeeResult.exceptionAdjustments.reduce((sum, adj) => sum + adj.payDifference, 0) >= 0 ? '+' : ''}
-                                  {employeeResult.exceptionAdjustments.reduce((sum, adj) => sum + adj.payDifference, 0).toLocaleString()}원
-                                </span>
-                              </div>
-                              <div className="flex justify-between font-medium">
-                                <span className="text-gray-900">실수령액:</span>
-                                <span className="text-gray-900">{employeeResult.netSalary.netSalary.toLocaleString()}원</span>
-                              </div>
+                                  <div className="flex justify-between text-xs text-gray-500">
+                                    <span className="pl-2">• 주휴시간:</span>
+                                    <span>{employeeResult.monthlySalary.holidayHours.toLocaleString()}시간</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">예외조정:</span>
+                                    <span className="text-gray-900">
+                                      {employeeResult.exceptionAdjustments.reduce((sum, adj) => sum + adj.payDifference, 0) >= 0 ? '+' : ''}
+                                      {employeeResult.exceptionAdjustments.reduce((sum, adj) => sum + adj.payDifference, 0).toLocaleString()}원
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between font-medium">
+                                    <span className="text-gray-900">실수령액:</span>
+                                    <span className="text-gray-900">{employeeResult.netSalary.netSalary.toLocaleString()}원</span>
+                                  </div>
                                 </div>
                               </div>
 
