@@ -20,7 +20,7 @@ export const useAuth = () => {
   useEffect(() => {
     // 현재 세션 가져오기
     const getSession = async () => {
-      console.log('🔄 [useAuth] 초기 세션 확인 중...')
+      console.log('🔄 [useAuth] 초기 세션 확인 중... (인스턴스 ID:', Math.random().toString(36).substr(2, 9), ')')
       try {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) {
@@ -30,7 +30,8 @@ export const useAuth = () => {
             hasSession: !!session,
             userId: session?.user?.id,
             email: session?.user?.email,
-            provider: session?.user?.app_metadata?.provider
+            provider: session?.user?.app_metadata?.provider,
+            currentPath: typeof window !== 'undefined' ? window.location.pathname : 'server'
           })
           setSession(session)
           setUser(session?.user || null)
@@ -52,7 +53,9 @@ export const useAuth = () => {
           hasSession: !!session,
           userId: session?.user?.id,
           email: session?.user?.email,
-          provider: session?.user?.app_metadata?.provider
+          provider: session?.user?.app_metadata?.provider,
+          currentPath: typeof window !== 'undefined' ? window.location.pathname : 'server',
+          timestamp: new Date().toISOString()
         })
         setSession(session)
         setUser(session?.user || null)
