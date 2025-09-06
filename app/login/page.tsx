@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,8 +16,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, loading: authLoading } = useAuth()
-  const hasRedirected = useRef(false)
   
   // 상태 관리: 각 폼의 입력값과 로딩/에러 상태
   const [email, setEmail] = useState('')
@@ -36,32 +33,6 @@ function LoginContent() {
       setMessage(`로그인 후 ${fromParam} 페이지로 이동됩니다.`)
     }
   }, [searchParams])
-
-  // 이미 로그인된 사용자 자동 리다이렉트 (한 번만 실행)
-  useEffect(() => {
-    console.log('🔍 [LOGIN PAGE] useEffect 실행:', {
-      authLoading,
-      hasUser: !!user,
-      userId: user?.id,
-      hasRedirected: hasRedirected.current,
-      redirectTo,
-      currentPath: window.location.pathname
-    })
-    
-    if (!authLoading && user && !hasRedirected.current) {
-      console.log('🔄 [LOGIN PAGE] 이미 로그인된 사용자 감지, 리다이렉트 시작:', redirectTo)
-      hasRedirected.current = true
-      
-      // router.replace 사용하여 히스토리 스택에 추가하지 않음
-      console.log('🚀 [LOGIN PAGE] router.replace 실행 중...')
-      router.replace(redirectTo)
-      
-      // 추가 확인용 타이머
-      setTimeout(() => {
-        console.log('⏰ [LOGIN PAGE] 3초 후 현재 경로:', window.location.pathname)
-      }, 3000)
-    }
-  }, [user, authLoading, redirectTo, router])
 
   /**
    * 이메일/비밀번호로 로그인하는 함수
