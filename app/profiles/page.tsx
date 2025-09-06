@@ -308,16 +308,24 @@ function ProfilePageContent() {
     setMessage('')
 
     try {
+      console.log('🔄 [PROFILES] 로그아웃 시도 중...')
       const { error } = await supabase.auth.signOut()
+      
       if (error) {
+        console.error('❌ [PROFILES] 로그아웃 실패:', error)
         setError(`로그아웃 실패: ${error.message}`)
       } else {
+        console.log('✅ [PROFILES] 로그아웃 성공')
         setMessage('성공적으로 로그아웃되었습니다.')
-        router.push('/login')
+        
+        // 약간의 지연 후 리다이렉트 (메시지 표시 시간 확보)
+        setTimeout(() => {
+          router.push('/login')
+        }, 1000)
       }
     } catch (err) {
+      console.error('❌ [PROFILES] 로그아웃 예외:', err)
       setError('예상치 못한 오류가 발생했습니다.')
-      console.error('로그아웃 오류:', err)
     } finally {
       setUpdating(false)
     }
