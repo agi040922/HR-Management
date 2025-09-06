@@ -29,7 +29,7 @@ import AuthGuard from '@/components/AuthGuard'
  */
 function ProfilePageContent() {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const { profile, loading, uploading, updateProfile, uploadAvatar, deleteAvatar } = useUser()
   
   // 상태 관리
@@ -300,7 +300,7 @@ function ProfilePageContent() {
   }
 
   /**
-   * 로그아웃 함수
+   * 로그아웃 함수 - useAuth Hook의 signOut 메서드 사용
    */
   const handleLogout = async () => {
     setUpdating(true)
@@ -309,7 +309,7 @@ function ProfilePageContent() {
 
     try {
       console.log('🔄 [PROFILES] 로그아웃 시도 중...')
-      const { error } = await supabase.auth.signOut()
+      const { error } = await signOut()
       
       if (error) {
         console.error('❌ [PROFILES] 로그아웃 실패:', error)

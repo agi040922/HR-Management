@@ -122,11 +122,68 @@ export const useAuth = () => {
   }
 
   /**
-   * 로그아웃
+   * 로그아웃 - 배포 환경 호환성 개선
    */
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+    try {
+      console.log('🔄 [useAuth] 로그아웃 시도 중...')
+      
+      // 1차: 일반 로그아웃 시도
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.warn('⚠️ [useAuth] 일반 로그아웃 실패, 강제 로그아웃 시도:', error.message)
+        
+        // 2차: 강제 로그아웃 (로컬 상태만 클리어)
+        setUser(null)
+        setSession(null)
+        
+        // 3차: 로컬 스토리지 및 쿠키 수동 클리어
+        if (typeof window !== 'undefined') {
+          // 로컬 스토리지 클리어
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-') || key.includes('supabase')) {
+              localStorage.removeItem(key)
+            }
+          })
+          
+          // 쿠키 클리어
+          document.cookie.split(";").forEach(cookie => {
+            const eqPos = cookie.indexOf("=")
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+            if (name.startsWith('sb-') || name.includes('supabase')) {
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+            }
+          })
+        }
+        
+        console.log('✅ [useAuth] 강제 로그아웃 완료')
+        return { error: null } // 강제 로그아웃 성공으로 처리
+      }
+      
+      console.log('✅ [useAuth] 정상 로그아웃 완료')
+      return { error }
+      
+    } catch (err) {
+      console.error('❌ [useAuth] 로그아웃 예외:', err)
+      
+      // 예외 발생 시에도 강제 로그아웃
+      setUser(null)
+      setSession(null)
+      
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        // 모든 쿠키 클리어
+        document.cookie.split(";").forEach(cookie => {
+          const eqPos = cookie.indexOf("=")
+          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+        })
+      }
+      
+      return { error: null } // 강제 로그아웃으로 처리
+    }
   }
 
   /**
